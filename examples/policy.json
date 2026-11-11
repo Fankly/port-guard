@@ -1,0 +1,11 @@
+{
+  "interface": "en0",
+  "log_interface": "pflog7",
+  "services": [
+    {
+      "port": 18080,
+      "protocols": ["tcp", "udp"],
+      "allow": ["192.0.2.20", "2001:db8::20"]
+    }
+  ]
+}
