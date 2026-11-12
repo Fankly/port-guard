@@ -6,3 +6,15 @@
 .tools/
 /dist/
 __pycache__/
+
+# The UI preview is a standalone front-end workspace
+/ui/node_modules/
+/ui/dist/
+/ui/tsconfig.tsbuildinfo
+
+# Tauri desktop shell
+/node_modules/
+/src-tauri/target/
+/src-tauri/gen/schemas/
+.npm-cache/
+.cargo-home/

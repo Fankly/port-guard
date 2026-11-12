@@ -1,0 +1,16 @@
+{
+  "name": "port-guard",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Port Guard desktop workspace",
+  "scripts": {
+    "desktop:dev": "python3 tools/desktop.py dev",
+    "desktop:build": "python3 tools/desktop.py build --no-bundle",
+    "desktop:bundle": "python3 tools/desktop.py build",
+    "ui:dev": "npm --prefix ui run dev",
+    "ui:build": "npm --prefix ui run build"
+  },
+  "devDependencies": {
+    "@tauri-apps/cli": "^2.0.0"
+  }
+}

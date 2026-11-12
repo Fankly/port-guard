@@ -1,0 +1,257 @@
+@import "tailwindcss";
+
+/* ============================================================
+   Port Guard design tokens
+   Calm evergreen workspace. Light surfaces, one dark anchor.
+   ============================================================ */
+
+@theme {
+  --font-sans: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI",
+    "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "Noto Sans SC",
+    sans-serif;
+  --font-mono: "SFMono-Regular", "SF Mono", ui-monospace, Menlo, Consolas,
+    "Liberation Mono", monospace;
+
+  --color-background: #f4f6f2;
+  --color-foreground: #16211b;
+  --color-card: #ffffff;
+  --color-card-foreground: #16211b;
+  --color-popover: #ffffff;
+  --color-popover-foreground: #16211b;
+
+  --color-primary: #0f6b4f;
+  --color-primary-strong: #0a5640;
+  --color-primary-foreground: #f7fbf8;
+  --color-primary-soft: #e8f3ec;
+
+  --color-secondary: #f1f4ef;
+  --color-secondary-foreground: #26332b;
+  --color-muted: #eef1ec;
+  --color-muted-foreground: #616e66;
+  --color-accent: #e8f3ed;
+  --color-accent-foreground: #0b4d39;
+
+  --color-destructive: #b23f33;
+  --color-destructive-foreground: #fff8f7;
+  --color-destructive-soft: #fbeeec;
+  --color-warning: #98651a;
+  --color-warning-soft: #fbf4e5;
+  --color-success: #127a58;
+
+  --color-border: #e3e8e1;
+  --color-border-strong: #d3dcd2;
+  --color-input: #dbe3da;
+  --color-ring: #0f6b4f;
+
+  --color-sidebar: #0b1d16;
+  --color-sidebar-2: #0e251c;
+  --color-sidebar-foreground: #dae6df;
+  --color-sidebar-muted: #92a89b;
+  --color-sidebar-border: #1d3529;
+
+  --color-chart-allow: #1e8b66;
+  --color-chart-block: #c2604a;
+
+  --radius-xs: 6px;
+  --radius-sm: 8px;
+  --radius-md: 10px;
+  --radius-lg: 12px;
+  --radius-xl: 16px;
+  --radius-2xl: 20px;
+
+  --shadow-xs: 0 1px 2px rgba(20, 38, 28, 0.04);
+  --shadow-card: 0 1px 2px rgba(20, 38, 28, 0.04),
+    0 18px 40px -32px rgba(20, 38, 28, 0.28);
+  --shadow-lift: 0 2px 4px rgba(20, 38, 28, 0.04),
+    0 26px 60px -36px rgba(20, 38, 28, 0.38);
+}
+
+@layer base {
+  html {
+    color-scheme: light;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+
+  body {
+    @apply bg-background text-foreground font-sans text-[13px] leading-[1.55];
+    min-width: 320px;
+  }
+
+  ::selection {
+    background: #cfe8da;
+    color: #0c3929;
+  }
+
+  :where(a, button, [tabindex]):focus-visible {
+    outline: 2px solid var(--color-primary);
+    outline-offset: 2px;
+  }
+
+  :where(input, select, textarea):focus-visible {
+    outline: none;
+  }
+
+  [data-dark-surface] :is(button, a, [tabindex]):focus-visible,
+  [data-sidebar] :is(button, a, [tabindex]):focus-visible {
+    outline-color: #7ee7ba;
+  }
+
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: #cfd8cf transparent;
+  }
+
+  ::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: #cfd8cf;
+    border: 3px solid transparent;
+    border-radius: 99px;
+    background-clip: content-box;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background: #b6c4b9;
+    border: 3px solid transparent;
+    background-clip: content-box;
+  }
+}
+
+@layer components {
+  /* Faint blueprint grid used only inside the dark status panel. */
+  .hero-grid {
+    background-image: linear-gradient(
+        to right,
+        rgba(255, 255, 255, 0.045) 1px,
+        transparent 1px
+      ),
+      linear-gradient(to bottom, rgba(255, 255, 255, 0.045) 1px, transparent 1px);
+    background-size: 42px 42px;
+    mask-image: radial-gradient(
+      120% 110% at 78% 0%,
+      #000 18%,
+      transparent 74%
+    );
+  }
+
+  .num {
+    font-variant-numeric: tabular-nums;
+    letter-spacing: -0.015em;
+  }
+}
+
+/* Sonner: inherit the app's surface language instead of its defaults. */
+[data-sonner-toaster] {
+  font-family: var(--font-sans);
+  --width: 348px;
+}
+
+[data-sonner-toast] {
+  border-radius: 12px;
+  border-color: var(--color-border);
+  font-size: 12.5px;
+  box-shadow: var(--shadow-lift);
+}
+
+[data-sonner-toast] [data-title] {
+  font-weight: 550;
+}
+
+/* Recharts */
+.recharts-wrapper :focus,
+.recharts-surface:focus {
+  outline: none;
+}
+
+.recharts-cartesian-axis-tick text {
+  font-family: var(--font-mono);
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+}
+
+@keyframes fade-out {
+  to {
+    opacity: 0;
+  }
+}
+
+@keyframes overlay-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes overlay-out {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+
+@keyframes sheet-in {
+  from {
+    transform: translateX(100%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+
+@keyframes sheet-out {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(100%);
+  }
+}
+
+@keyframes dialog-in {
+  from {
+    opacity: 0;
+    scale: 0.97;
+  }
+  to {
+    opacity: 1;
+    scale: 1;
+  }
+}
+
+@keyframes dialog-out {
+  from {
+    opacity: 1;
+    scale: 1;
+  }
+  to {
+    opacity: 0;
+    scale: 0.98;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

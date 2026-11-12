@@ -31,6 +31,17 @@ enum Action {
         #[arg(long)]
         policy: PathBuf,
     },
+    /// Preview a policy change and exact cleanup for explicitly listed lab IPs.
+    PlanUpdate {
+        #[arg(long)]
+        before: PathBuf,
+        #[arg(long)]
+        after: PathBuf,
+        #[arg(long, required = true, value_delimiter = ',')]
+        source: Vec<IpAddr>,
+        #[arg(long, required = true, value_delimiter = ',')]
+        local: Vec<IpAddr>,
+    },
     /// Print exact request bytes; mutation requires both explicit flags.
     Kill {
         #[arg(long)]
@@ -122,6 +133,10 @@ fn run() -> Result<()> {
                 "stdout":String::from_utf8_lossy(&output.stdout),"stderr":String::from_utf8_lossy(&output.stderr)});
             println!("{}", serde_json::to_string_pretty(&report)?);
             ensure!(output.status.success(), "pfctl syntax check did not pass");
+        }
+        Action::PlanUpdate { before, after, source, local } => {
+            let report = pf_probe::update::plan_update(&policy(&before)?, &policy(&after)?, &source, &local)?;
+            println!("{}", serde_json::to_string_pretty(&report)?);
         }
         Action::Kill {
             source,

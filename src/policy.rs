@@ -37,6 +37,11 @@ pub struct Service {
     pub port: u16,
     pub protocols: Vec<Protocol>,
     pub allow: Vec<String>,
+    #[serde(default = "enabled_by_default")]
+    pub enabled: bool,
+}
+fn enabled_by_default() -> bool {
+    true
 }
 
 #[derive(Debug, Clone)]
@@ -80,7 +85,6 @@ impl Policy {
             "日志接口必须为 pflogN"
         );
         ensure!(suffix.parse::<u16>()? < 16, "本原型仅接受 pflog0..pflog15");
-        ensure!(!self.services.is_empty(), "至少配置一个服务");
         let mut services = vec![];
         let mut keys = BTreeSet::new();
         for service in self.services {
@@ -96,6 +100,9 @@ impl Policy {
                     keys.insert((service.port, protocol)),
                     "同一端口/协议重复配置"
                 );
+                if !service.enabled {
+                    continue;
+                }
                 services.push(CompiledService {
                     port: service.port,
                     protocol,
@@ -196,6 +203,7 @@ mod tests {
                 port: 8080,
                 protocols: vec![Protocol::Tcp, Protocol::Udp],
                 allow: allow.iter().map(|x| x.to_string()).collect(),
+                enabled: true,
             }],
         }
         .compile()
@@ -242,6 +250,7 @@ mod tests {
                     port: 8080,
                     protocols: vec![Protocol::Tcp],
                     allow: vec![source.into()],
+                    enabled: true,
                 }],
             };
             assert!(p.compile().is_err());
@@ -251,6 +260,7 @@ mod tests {
             port: 8080,
             protocols: vec![Protocol::Tcp, Protocol::Tcp],
             allow: vec![],
+            enabled: true,
         };
         assert!(
             Policy {

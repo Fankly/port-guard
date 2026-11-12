@@ -1,6 +1,6 @@
 # port-guard
 
-跨 Windows/macOS 的本机端口白名单工具。目前完成的是 **Mac PF 命令行技术原型**，还不是桌面安装版。
+跨 Windows/macOS 的本机端口白名单工具。目前完成的是 **Mac PF 命令行技术原型 + Tauri 2 桌面预览壳**，还不是桌面安装版。
 
 ## 当前能力
 
@@ -12,8 +12,47 @@
 - 解析 Darwin PFLOG 的真实 action、地址、端口和规则信息；拒绝把普通网卡抓包当成防火墙日志。
 - 从已存在的 pflog 接口读取元数据；支持离线 classic pcap 解码。
 - 提供双端口 TCP 和单向 UDP 测试工具。
+- 提供 Tauri 2 桌面壳：React 界面通过受限 IPC 读写本机 SQLite，并由 Rust 侧复用规则校验；浏览器预览仍可独立运行。
 
-尚未完成系统规则挂载安装器、后台常驻服务、桌面界面、Windows 执行层和实机流量验收。原型有意不提供自动启用 PF、全量加载主规则集或全量清理状态的命令。不能仅凭语法检查或 ioctl 返回成功就宣布访问权限已撤销。
+尚未完成系统规则挂载安装器、后台常驻服务、Windows 执行层和实机流量验收。原型有意不提供自动启用 PF、全量加载主规则集或全量清理状态的命令。不能仅凭语法检查或 ioctl 返回成功就宣布访问权限已撤销。
+
+## 界面设计预览
+
+`ui/` 是 React + TypeScript 的界面（Tailwind CSS 4 + Radix UI/shadcn 风格组件 + Motion + Zustand + TanStack Query + Recharts），包含总览、端口规则、访问日志、操作日志、设置五个页面和规则编辑抽屉。在浏览器中独立运行时只读写 `localStorage` 中的演示数据；在 Tauri 桌面端则通过 IPC 读写本机 SQLite。
+
+```sh
+cd ui
+npm install
+npm run dev    # http://127.0.0.1:1420
+```
+
+需要 Node.js 20.19+（仓库提供 `ui/.nvmrc`，当前为 Node 24）。设计说明、页面截图和待确认项见 [`docs/界面设计.md`](docs/界面设计.md)。
+
+## 桌面端（Tauri 2 + SQLite）
+
+`src-tauri/` 按 [`docs/技术选型与验证计划.md`](docs/技术选型与验证计划.md) 的技术方向搭建，当前只覆盖桌面壳和本地存储：
+
+- React/TypeScript 界面运行在系统 WebView 中，浏览器预览仍可独立使用。
+- Rust 命令层调用 `pf-probe` 的规则核心重新校验端口、协议和 IP/CIDR，再写入 SQLite（rusqlite）；前端不能绕过校验。
+- 规则核心的 `render`/`preview_policy` 仍只生成独立的 anchor 预览，**不加载规则、不启用 PF、不请求管理员权限**（当前由 Rust 测试覆盖，尚未接到界面按钮）。
+- 后台服务、LaunchDaemon、PF 实际挂载、Windows WFP、真实日志和安装包仍未实现。
+
+首次准备与启动：
+
+```sh
+npm install                  # 安装 Tauri CLI
+npm --prefix ui install      # 安装界面依赖
+python3 tools/desktop.py dev # 启动桌面窗口；需要 Node.js >= 20.19
+```
+
+构建前端和桌面二进制：
+
+```sh
+npm --prefix ui run build
+python3 tools/desktop.py build --no-bundle
+```
+
+`tools/desktop.py` 与 `tools/dev.py` 共用 `.local-toolchain.json` 的本地 Rust 工具链配置。SQLite 文件位于系统应用数据目录，实际路径显示在设置页“运行状态”中；删除它等同于清空本机预览数据。
 
 ## 开发
 
@@ -32,6 +71,7 @@ python3 -m unittest discover -s tests -v
 ```sh
 python3 tools/dev.py test
 python3 tools/dev.py build
+python3 tools/dev.py test -p port-guard-desktop
 python3 -m unittest discover -s tests -v
 ```
 
@@ -110,6 +150,8 @@ python3 tools/traffic_lab.py observe --host MAC_LAN_IP --seconds 120
 - `src/native.rs`、`native/pf_native.c`：精确状态清理请求及实验接口。
 - `src/pflog.rs`、`src/capture.rs`：PFLOG 解码与有界实时采集。
 - `src/main.rs`：命令行入口。
+- `src-tauri/`：Tauri 2 桌面壳、IPC 命令与 SQLite 存储。
+- `ui/`：桌面界面（React + Vite + Tailwind CSS + Radix UI）；`ui/src/bridge.ts` 是浏览器预览与 Tauri IPC 的切换层。
 - `tests/`：CLI、合成日志与测试工具回环验证。
-- `tools/`：构建入口、双机测试工具、只读管理员诊断脚本。
-- `docs/`：需求规格、技术选型及验收记录。
+- `tools/`：构建入口、桌面端入口、双机测试工具、只读管理员诊断脚本。
+- `docs/`：需求规格、技术选型、界面设计及验收记录。
