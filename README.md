@@ -46,7 +46,7 @@ npm run dev    # 同时启动界面 :1420 与本机 API :1421
 
 ### Windows 现状
 
-- 预览包（界面 + SQLite）通过 `.github/workflows/windows-build.yml` 在 `windows-latest` 上构建；每次 push/PR 运行 `cargo test --workspace`，安装包只在手动触发时用 `--bundles nsis` 产出。产物不包含 WFP 执行层，因此不会拦截任何流量。
+- 预览包（界面 + SQLite）通过 `.github/workflows/windows-build.yml` 在 `windows-latest` 上验证；每次 push/PR 运行 `cargo test --workspace`，手动触发可构建 NSIS 安装包。推送版本标签后，Release 工作流自动构建并发布安装包。产物不包含 WFP 执行层，因此不会拦截任何流量。
 - `doctor`、`check`、`plan-update`、`kill` 只在 macOS 可用；在 Windows 上执行会返回明确的“仅 macOS”错误，而不是找不到 `pfctl` 的模糊失败。`render`、`decode` 和桌面壳在各平台都可用。
 - 界面的设备名、引擎名、日志源与首次演示数据按平台渲染：Windows 显示 `WFP` / `WFP 事件` / “这台 PC”，macOS 显示 `PF` / `PF 日志` / “这台 Mac”。
 - `bundle.targets` 为 `all`，Windows 安装器使用 `embedBootstrapper`（未内嵌 WebView2 离线包，目标机缺少 WebView2 时需要联网）。产物未做代码签名，Windows 会提示 SmartScreen“未知发布者”。
@@ -67,6 +67,12 @@ python3 tools/desktop.py build --no-bundle
 ```
 
 `tools/desktop.py` 与 `tools/dev.py` 共用 `.local-toolchain.json` 的本地 Rust 工具链配置。SQLite 文件位于系统应用数据目录，实际路径显示在设置页“运行状态”中；删除它等同于清空本机预览数据。
+
+## GitHub Releases
+
+推送 `v*` 版本标签后，[Release 工作流](https://github.com/Fankly/port-guard/actions/workflows/release.yml) 自动构建 Windows x64、Mac Apple 芯片和 Mac Intel 安装包，全部成功后发布到 [Releases](https://github.com/Fankly/port-guard/releases)，并附上更新说明与 SHA-256 校验文件。标签含 `-beta`、`-rc` 等后缀时自动标记为预发布。
+
+完整步骤、仅构建验证与失败重试见 [`docs/RELEASING.md`](docs/RELEASING.md)。
 
 ## 开发
 
