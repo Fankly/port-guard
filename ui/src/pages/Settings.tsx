@@ -23,12 +23,13 @@ import type { ReactNode } from 'react'
 import type { AppInfo } from '../bridge'
 import type { Operation, Preferences, Rule } from '../data'
 import { downloadFile, formatTime, toCsv } from '../data'
+import type { PlatformId } from '../lib/platform'
+import { detectPlatform, platformCopy } from '../lib/platform'
 import { cn } from '../lib/utils'
 import { useReturnFocus } from '../hooks/use-return-focus'
 import { ConfirmDialog } from '../components/feedback/confirm-dialog'
 import { PageHeader } from '../components/shared/page-header'
 import { Segmented } from '../components/shared/segmented'
-import { LiveDot } from '../components/shared/status'
 import { Button } from '../components/ui/button'
 import { Card, CardHeader } from '../components/ui/card'
 import { Select } from '../components/ui/select'
@@ -46,13 +47,27 @@ type Props = {
   storageError: boolean
 }
 
-const interfaces = [
-  { value: 'en0', label: 'en0 · Wi-Fi', hint: '当前默认网络接口' },
-  { value: 'en1', label: 'en1 · 以太网', hint: '有线网络适配器' },
-  { value: 'en2', label: 'en2 · 其他', hint: '请在系统中确认接口名称' },
-]
+const interfaceCatalog: Record<
+  PlatformId,
+  { value: string; label: string; hint: string }[]
+> = {
+  macos: [
+    { value: 'en0', label: 'en0 · Wi-Fi', hint: '当前默认网络接口' },
+    { value: 'en1', label: 'en1 · 以太网', hint: '有线网络适配器' },
+    { value: 'en2', label: 'en2 · 其他', hint: '请在系统中确认接口名称' },
+  ],
+  windows: [
+    { value: '以太网', label: '以太网 · Ethernet', hint: 'Windows 网络连接' },
+    { value: 'Wi-Fi', label: 'Wi-Fi · WLAN', hint: '无线网络适配器' },
+  ],
+  other: [{ value: '默认接口', label: '默认接口', hint: '使用系统默认路由' }],
+}
 
-const logInterfaces = ['pflog0', 'pflog1', 'pflog2', 'pflog7']
+const logInterfaceCatalog: Record<PlatformId, string[]> = {
+  macos: ['pflog0', 'pflog1', 'pflog2', 'pflog7'],
+  windows: ['WFP Net Events'],
+  other: ['系统日志'],
+}
 
 export default function Settings({
   preferences,
@@ -74,6 +89,9 @@ export default function Settings({
   const dirty = JSON.stringify(draft) !== JSON.stringify(preferences)
   const saving = desktop && saved && saveState === 'saving'
   const failed = desktop && saved && saveState === 'error'
+  const copy = platformCopy(detectPlatform(appInfo?.platform))
+  const interfaces = interfaceCatalog[copy.id]
+  const logInterfaces = logInterfaceCatalog[copy.id]
 
   const interfaceOptions = interfaces.some(item => item.value === draft.interface)
     ? interfaces
@@ -136,19 +154,20 @@ export default function Settings({
   }
 
   return (
-    <div className="pb-10 lg:pb-14">
+    <div className="pb-14">
       <PageHeader
+        label="Settings / 设置"
         title="设置"
         description="配置网络接口、日志存储与运行行为。涉及系统权限的变更会由后台服务执行。"
       />
 
-      <div className="grid items-start gap-4 xl:grid-cols-[1.1fr_0.9fr]">
-        <div className="space-y-4">
+      <div className="grid items-start gap-6 xl:grid-cols-[1.1fr_0.9fr] xl:gap-8">
+        <div className="space-y-6">
           <Card>
             <SectionHeader
-              icon={<Cable className="size-[17px]" />}
+              icon={<Cable className="size-5" strokeWidth={2.6} />}
               title="网络与日志"
-              description="告诉 Port Guard 应该核对哪个接口、从哪里读取 PF 日志。"
+              description={`告诉 Port Guard 应该核对哪个接口、从哪里读取${copy.logLabel}。`}
             />
 
             <SettingRow
@@ -159,7 +178,7 @@ export default function Settings({
                 value={draft.interface}
                 onChange={event => update('interface', event.target.value)}
                 aria-label="受管网络接口"
-                className="w-full sm:w-[180px]"
+                className="w-full sm:w-[200px]"
               >
                 {interfaceOptions.map(item => (
                   <option key={item.value} value={item.value}>
@@ -170,14 +189,14 @@ export default function Settings({
             </SettingRow>
 
             <SettingRow
-              title="PF 日志接口"
-              description="从已存在的 pflog 接口读取真实允许/拦截事件，不使用普通网卡抓包冒充。"
+              title={`${copy.logLabel}接口`}
+              description="从系统过滤层的事件源读取真实允许/拦截记录，不使用普通网卡抓包冒充。"
             >
               <Select
                 value={draft.logInterface}
                 onChange={event => update('logInterface', event.target.value)}
-                aria-label="PF 日志接口"
-                className="w-full sm:w-[180px]"
+                aria-label={`${copy.logLabel}接口`}
+                className="w-full sm:w-[200px]"
               >
                 {[...new Set([...logInterfaces, draft.logInterface])].map(item => (
                   <option key={item} value={item}>
@@ -218,7 +237,7 @@ export default function Settings({
 
           <Card>
             <SectionHeader
-              icon={<BellRing className="size-[17px]" />}
+              icon={<BellRing className="size-5" strokeWidth={2.6} />}
               title="提醒"
               description="只在需要你处理时提醒，不把每一次拦截都变成打扰。"
             />
@@ -246,21 +265,23 @@ export default function Settings({
             </SettingRow>
           </Card>
 
-          <div className="flex gap-3 rounded-xl border border-border bg-card/60 px-4 py-3.5">
-            <ShieldCheck className="mt-0.5 size-4 shrink-0 text-primary" />
+          <div className="flex gap-3 border-2 border-ink bg-tangerine px-4 py-4 shadow-[4px_4px_0_0_#000]">
+            <ShieldCheck className="mt-0.5 size-5 shrink-0" strokeWidth={2.6} />
             <div>
-              <strong className="text-[11.5px] font-medium">权限边界</strong>
-              <p className="mt-0.5 text-[10.5px] leading-relaxed text-muted-foreground">
+              <strong className="font-mono text-[11px] font-bold uppercase tracking-[0.08em]">
+                权限边界
+              </strong>
+              <p className="mt-1 font-mono text-[12px] leading-[1.7]">
                 界面只通过受限接口管理规则，不获得任意高权限命令执行能力。安装、规则挂载与卸载需要单独的系统授权和验收。
               </p>
             </div>
           </div>
         </div>
 
-        <div className="space-y-4">
+        <div className="space-y-6">
           <Card>
             <SectionHeader
-              icon={<Server className="size-[17px]" />}
+              icon={<Server className="size-5" strokeWidth={2.6} />}
               title="运行状态"
               description={
                 storageError
@@ -270,38 +291,38 @@ export default function Settings({
                     : '这里是设计预览中的静态状态，尚未连接真实系统。'
               }
               aside={
-                <span className="rounded-full border border-[#f0dfbb] bg-warning-soft px-1.5 py-px text-[9px] font-medium text-warning">
+                <span className="border border-ink bg-tangerine px-1.5 py-px font-mono text-[12px] font-bold uppercase tracking-[0.08em]">
                   示例
                 </span>
               }
             />
             <div>
               <StatusRow
-                icon={<Settings2 className="size-3.5" />}
+                icon={<Settings2 className="size-3.5" strokeWidth={2.6} />}
                 label="后台服务"
-                detail="LaunchDaemon · 已授权"
-                value="运行中"
+                detail={`${copy.serviceLabel} · 已授权`}
+                value={copy.serviceStatus}
               />
               <StatusRow
-                icon={<ShieldCheck className="size-3.5" />}
-                label="PF 引擎"
-                detail="anchor · pf_port_guard"
-                value="已启用"
+                icon={<ShieldCheck className="size-3.5" strokeWidth={2.6} />}
+                label={`${copy.engineName} 引擎`}
+                detail={copy.engineDetail}
+                value={copy.engineStatus}
               />
               <StatusRow
-                icon={<ScrollText className="size-3.5" />}
+                icon={<ScrollText className="size-3.5" strokeWidth={2.6} />}
                 label="日志采集"
-                detail="pflog7 · 无丢包"
-                value="正常"
+                detail={copy.logDetail}
+                value={copy.logStatus}
               />
               <StatusRow
-                icon={<Terminal className="size-3.5" />}
+                icon={<Terminal className="size-3.5" strokeWidth={2.6} />}
                 label="主规则挂载"
-                detail="独立 anchor 引用"
-                value="已挂载"
+                detail={copy.rulesDetail}
+                value={copy.rulesStatus}
               />
               <StatusRow
-                icon={<Database className="size-3.5" />}
+                icon={<Database className="size-3.5" strokeWidth={2.6} />}
                 label="本地存储"
                 detail={
                   storageError
@@ -315,8 +336,8 @@ export default function Settings({
                 error={storageError}
               />
             </div>
-            <div className="flex gap-2 border-t border-border/70 px-5 py-2.5 text-[10px] leading-relaxed text-muted-foreground">
-              <Info className="mt-0.5 size-3 shrink-0" />
+            <div className="flex gap-2 border-t-2 border-ink bg-slab px-4 py-3 font-mono text-[11px] leading-[1.6]">
+              <Info className="mt-0.5 size-3.5 shrink-0" strokeWidth={2.6} />
               <span>
                 系统版本与规则挂载信息将在接入后台服务后读取，不使用固定演示值。
               </span>
@@ -325,7 +346,7 @@ export default function Settings({
 
           <Card>
             <SectionHeader
-              icon={<Database className="size-[17px]" />}
+              icon={<Database className="size-5" strokeWidth={2.6} />}
               title="数据与维护"
               description={
                 desktop
@@ -335,19 +356,19 @@ export default function Settings({
             />
             <div>
               <DataAction
-                icon={<FileText className="size-4" />}
+                icon={<FileText className="size-4" strokeWidth={2.6} />}
                 title="导出配置"
                 description="JSON · 规则与偏好设置"
                 onClick={exportConfig}
               />
               <DataAction
-                icon={<HardDrive className="size-4" />}
+                icon={<HardDrive className="size-4" strokeWidth={2.6} />}
                 title="导出操作日志"
                 description={`CSV · 最近 ${operations.length} 条`}
                 onClick={exportOperations}
               />
               <DataAction
-                icon={<RotateCcw className="size-4" />}
+                icon={<RotateCcw className="size-4" strokeWidth={2.6} />}
                 title="恢复演示数据"
                 description={
                   desktop
@@ -363,37 +384,37 @@ export default function Settings({
             </div>
           </Card>
 
-          <Card className="overflow-hidden">
-            <div className="flex items-center gap-3 px-5 py-4">
-              <span className="grid size-10 shrink-0 place-items-center rounded-xl bg-linear-to-br from-[#1d926c] to-[#0b5943] shadow-[inset_0_1px_0_rgba(255,255,255,0.18)]">
-                <ShieldCheck className="size-[19px] text-white" strokeWidth={2.2} />
+          <Card>
+            <div className="flex items-center gap-3 px-4 py-4">
+              <span className="grid size-12 shrink-0 place-items-center border-2 border-ink bg-ink text-acid-lime shadow-[4px_4px_0_0_#000]">
+                <ShieldCheck className="size-6" strokeWidth={2.6} />
               </span>
               <div className="min-w-0 flex-1">
-                <strong className="block text-[13px] font-semibold">
+                <strong className="block font-sans text-[20px] font-black leading-none tracking-[-0.02em]">
                   Port Guard
                 </strong>
-                <span className="block text-[10.5px] text-muted-foreground">
+                <span className="mt-1.5 block font-mono text-[11px] font-bold uppercase tracking-[0.1em]">
                   {desktop
                     ? '本机端口白名单 · 桌面预览'
                     : '本机端口白名单 · 设计预览'}
                 </span>
               </div>
-              <span className="font-mono text-[10px] text-muted-foreground">
+              <span className="border border-ink bg-slab px-1.5 py-0.5 font-mono text-[11px] font-bold">
                 v{appInfo?.version ?? '0.1.0'}
               </span>
             </div>
-            <div className="flex flex-wrap items-center justify-between gap-2 border-t border-border/70 bg-muted/25 px-5 py-2.5 text-[10px] text-muted-foreground">
+            <div className="flex flex-wrap items-center justify-between gap-2 border-t-2 border-ink bg-slab px-4 py-2.5 font-mono text-[11px] font-bold">
               <span>目标平台 macOS 13+ / Windows 10+</span>
               <span>
                 {desktop
-                  ? `Tauri 2 · ${appInfo?.platform ?? 'macos'} ${appInfo?.arch ?? ''}`
+                  ? `Tauri 2 · ${appInfo?.platform ?? copy.osLabel} ${appInfo?.arch ?? ''}`
                   : 'React + Tauri 方向'}
               </span>
             </div>
-            <div className="flex items-start gap-2 border-t border-border/70 px-5 py-3 text-[10px] leading-relaxed text-muted-foreground">
-              <Lock className="mt-0.5 size-3 shrink-0" />
+            <div className="flex items-start gap-2 border-t-2 border-ink px-4 py-3 font-mono text-[11px] leading-[1.6]">
+              <Lock className="mt-0.5 size-3.5 shrink-0" strokeWidth={2.6} />
               <p>
-                当前页面不会修改 PF、不会安装服务，也不会调用任何管理员命令。
+                当前页面不会修改 {copy.engineName}、不会安装服务，也不会调用任何管理员命令。
               </p>
             </div>
           </Card>
@@ -403,73 +424,70 @@ export default function Settings({
       <AnimatePresence>
         {(dirty || saved || saving) && (
           <motion.div
-            initial={reduceMotion ? false : { opacity: 0, y: 14 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={reduceMotion ? undefined : { opacity: 0, y: 10 }}
-            transition={{ duration: 0.2, ease: [0.22, 0.8, 0.28, 1] }}
-            className="fixed bottom-20 left-1/2 z-50 w-[calc(100%-2rem)] max-w-[540px] -translate-x-1/2 lg:bottom-6 lg:left-[calc(50%+120px)]"
+            initial={reduceMotion ? false : { y: 20 }}
+            animate={{ y: 0 }}
+            exit={reduceMotion ? undefined : { y: 14 }}
+            transition={{ duration: 0.16, ease: [0.22, 0.8, 0.28, 1] }}
+            className="fixed bottom-24 left-1/2 z-50 w-[calc(100%-2rem)] max-w-[560px] -translate-x-1/2 lg:bottom-8 lg:left-[calc(50%+130px)]"
             role="status"
           >
-            <div
-              className={cn(
-                'flex items-center gap-3 rounded-xl border bg-card/95 p-3 shadow-lift backdrop-blur',
-                saved && !failed ? 'border-[#cfe6da]' : 'border-border',
-              )}
-            >
-              <span
-                className={cn(
-                  'grid size-8 shrink-0 place-items-center rounded-lg',
-                  failed
-                    ? 'bg-destructive-soft text-destructive'
-                    : saved
-                      ? 'bg-[#eff8f2] text-[#0e6a4e]'
-                      : 'bg-warning-soft text-warning',
-                )}
-              >
-                {saving ? (
-                  <Loader2 className="size-4 animate-spin" />
-                ) : failed ? (
-                  <AlertTriangle className="size-4" />
-                ) : saved ? (
-                  <CheckCircle2 className="size-4" />
-                ) : (
-                  <Info className="size-4" />
-                )}
-              </span>
-              <div className="min-w-0 flex-1">
-                <strong className="block truncate text-[11.5px] font-medium">
-                  {failed
-                    ? '写入本机 SQLite 失败'
-                    : saving
-                      ? '正在写入本机 SQLite…'
+            <div className="border-2 border-ink bg-paper p-3 shadow-[6px_6px_0_0_#000]">
+              <div className="flex items-center gap-3">
+                <span
+                  className={cn(
+                    'grid size-10 shrink-0 place-items-center border-2 border-ink',
+                    failed
+                      ? 'bg-hot-pink text-ink'
                       : saved
-                        ? desktop
-                          ? '设置已保存到本机 SQLite'
-                          : '设置已保存到本地预览'
-                        : '有未保存的修改'}
-                </strong>
-                <p className="truncate text-[10px] text-muted-foreground">
-                  {failed
-                    ? '偏好已在界面更新，但未写入本机存储。请重试保存。'
-                    : saving
-                      ? '偏好已更新，正在写入本机存储。'
-                      : saved
-                        ? '偏好已经更新；不会修改系统网络配置。'
-                        : desktop
-                          ? '保存后才会写入本机 SQLite。'
-                          : '保存后才会写入本地预览状态。'}
-                </p>
-              </div>
-              {!saved && (
-                <div className="flex shrink-0 items-center gap-1.5">
-                  <Button variant="ghost" size="sm" onClick={resetDraft}>
-                    放弃
-                  </Button>
-                  <Button size="sm" onClick={save}>
-                    保存设置
-                  </Button>
+                        ? 'bg-electric-cyan text-ink'
+                        : 'bg-tangerine text-ink',
+                  )}
+                >
+                  {saving ? (
+                    <Loader2 className="size-4 animate-spin" strokeWidth={2.6} />
+                  ) : failed ? (
+                    <AlertTriangle className="size-4" strokeWidth={2.6} />
+                  ) : saved ? (
+                    <CheckCircle2 className="size-4" strokeWidth={2.6} />
+                  ) : (
+                    <Info className="size-4" strokeWidth={2.6} />
+                  )}
+                </span>
+                <div className="min-w-0 flex-1">
+                  <strong className="block truncate font-mono text-[11px] font-bold uppercase tracking-[0.04em]">
+                    {failed
+                      ? '写入本机 SQLite 失败'
+                      : saving
+                        ? '正在写入本机 SQLite…'
+                        : saved
+                          ? desktop
+                            ? '设置已保存到本机 SQLite'
+                            : '设置已保存到本地预览'
+                          : '有未保存的修改'}
+                  </strong>
+                  <p className="truncate font-mono text-[11px] leading-[1.5]">
+                    {failed
+                      ? '偏好已在界面更新，但未写入本机存储。请重试保存。'
+                      : saving
+                        ? '偏好已更新，正在写入本机存储。'
+                        : saved
+                          ? '偏好已经更新；不会修改系统网络配置。'
+                          : desktop
+                            ? '保存后才会写入本机 SQLite。'
+                            : '保存后才会写入本地预览状态。'}
+                  </p>
                 </div>
-              )}
+                {!saved && (
+                  <div className="flex shrink-0 items-center gap-2">
+                    <Button variant="ghost" size="sm" onClick={resetDraft}>
+                      放弃
+                    </Button>
+                    <Button size="sm" onClick={save}>
+                      保存设置
+                    </Button>
+                  </div>
+                )}
+              </div>
             </div>
           </motion.div>
         )}
@@ -513,18 +531,18 @@ function SectionHeader({
   aside?: ReactNode
 }) {
   return (
-    <CardHeader className="items-center gap-3 px-5 py-4">
-      <span className="grid size-8 shrink-0 place-items-center rounded-lg bg-muted text-muted-foreground">
+    <CardHeader className="items-start gap-3 border-b-2 border-ink bg-slab px-4 py-4">
+      <span className="grid size-10 shrink-0 place-items-center border-2 border-ink bg-paper">
         {icon}
       </span>
       <div className="min-w-0 flex-1">
-        <div className="flex items-center gap-2">
-          <h2 className="text-[13.5px] font-semibold tracking-[-0.01em]">
+        <div className="flex flex-wrap items-center gap-2">
+          <h2 className="font-sans text-[24px] font-black leading-[1.05] tracking-[-0.02em]">
             {title}
           </h2>
           {aside}
         </div>
-        <p className="mt-0.5 text-[10.5px] leading-relaxed text-muted-foreground">
+        <p className="mt-1 font-mono text-[12px] leading-[1.6]">
           {description}
         </p>
       </div>
@@ -542,10 +560,10 @@ function SettingRow({
   children: ReactNode
 }) {
   return (
-    <div className="flex flex-col gap-2.5 border-t border-border/60 px-5 py-3.5 first-of-type:border-t-0 sm:flex-row sm:items-center sm:justify-between sm:gap-6">
+    <div className="flex flex-col gap-3 border-t-2 border-ink px-4 py-4 first-of-type:border-t-0 sm:flex-row sm:items-center sm:justify-between sm:gap-6">
       <div className="min-w-0">
-        <strong className="block text-[11.5px] font-medium">{title}</strong>
-        <p className="mt-0.5 max-w-[430px] text-[10px] leading-relaxed text-muted-foreground">
+        <strong className="block font-mono text-[11px] font-bold">{title}</strong>
+        <p className="mt-1 max-w-[430px] font-mono text-[12px] leading-[1.6]">
           {description}
         </p>
       </div>
@@ -570,31 +588,30 @@ function StatusRow({
   error?: boolean
 }) {
   return (
-    <div className="flex items-center gap-2.5 border-t border-border/60 px-5 py-2.5 first:border-t-0">
-      <span className="grid size-6 shrink-0 place-items-center rounded-md bg-muted/70 text-muted-foreground">
+    <div className="flex items-center gap-2.5 border-t-2 border-ink px-4 py-3 first:border-t-0">
+      <span className="grid size-7 shrink-0 place-items-center border-2 border-ink bg-paper">
         {icon}
       </span>
-      <span className="text-[11px] font-medium">{label}</span>
-      <span className="ml-auto hidden max-w-[150px] truncate text-[9.5px] text-muted-foreground sm:block">
+      <span className="font-mono text-[12px] font-bold">{label}</span>
+      <span className="ml-auto hidden max-w-[160px] truncate font-mono text-[11px] sm:block">
         {detail}
       </span>
       <span
         className={cn(
-          'inline-flex shrink-0 items-center gap-1.5 text-[10px]',
+          'inline-flex shrink-0 items-center gap-1.5 border-2 border-ink px-1.5 py-px font-mono text-[11px] font-bold',
           error
-            ? 'text-destructive'
+            ? 'bg-hot-pink text-ink'
             : muted
-              ? 'text-muted-foreground'
-              : 'text-[#0e6a4e]',
+              ? 'bg-slab text-ink'
+              : 'bg-acid-lime text-ink',
         )}
       >
-        {error ? (
-          <span className="size-1.5 rounded-full bg-destructive" />
-        ) : muted ? (
-          <span className="size-1.5 rounded-full bg-muted-foreground/50" />
-        ) : (
-          <LiveDot className="scale-[0.8]" />
-        )}
+        <span
+          className={cn(
+            'size-1.5 border border-current',
+            error ? 'bg-paper' : muted ? 'bg-ink' : 'bg-ink',
+          )}
+        />
         {value}
       </span>
     </div>
@@ -619,16 +636,13 @@ function DataAction({
       type="button"
       onClick={onClick}
       className={cn(
-        'group flex w-full items-center gap-3 border-t border-border/60 px-5 py-3 text-left transition-colors first:border-t-0',
-        danger ? 'hover:bg-destructive-soft/40' : 'hover:bg-muted/35',
+        'group flex w-full items-center gap-3 border-t-2 border-ink px-4 py-3.5 text-left transition-colors duration-150 first:border-t-0',
+        danger ? 'hover:bg-hot-pink hover:text-ink' : 'hover:bg-acid-lime',
       )}
     >
       <span
         className={cn(
-          'grid size-8 shrink-0 place-items-center rounded-lg',
-          danger
-            ? 'bg-destructive-soft/70 text-destructive'
-            : 'bg-muted text-muted-foreground',
+          'grid size-9 shrink-0 place-items-center border-2 border-ink bg-paper text-ink',
         )}
       >
         {icon}
@@ -636,17 +650,17 @@ function DataAction({
       <span className="min-w-0 flex-1">
         <strong
           className={cn(
-            'block text-[11.5px] font-medium',
-            danger && 'text-destructive',
+            'block font-mono text-[11px] font-bold',
+            danger && 'text-hot-pink group-hover:text-paper',
           )}
         >
           {title}
         </strong>
-        <small className="mt-0.5 block text-[10px] text-muted-foreground">
+        <small className="mt-0.5 block font-mono text-[11px]">
           {description}
         </small>
       </span>
-      <ChevronRight className="size-3.5 shrink-0 text-muted-foreground/60 transition-transform group-hover:translate-x-0.5" />
+      <ChevronRight className="size-4 shrink-0 transition-transform duration-150 group-hover:translate-x-1" strokeWidth={3} />
     </button>
   )
 }

@@ -16,11 +16,11 @@ export function AlertDialogContent({
 }: ComponentProps<typeof AlertDialogPrimitive.Content>) {
   return (
     <AlertDialogPrimitive.Portal>
-      <AlertDialogPrimitive.Overlay className="fixed inset-0 z-[65] bg-[#07160f]/45 backdrop-blur-[2px] data-[state=closed]:animate-[overlay-out_.15s_ease-in] data-[state=open]:animate-[overlay-in_.2s_ease-out]" />
+      <AlertDialogPrimitive.Overlay className="fixed inset-0 z-[65] bg-ink" />
       <AlertDialogPrimitive.Content
         aria-modal="true"
         className={cn(
-          'fixed left-1/2 top-1/2 z-[66] w-[calc(100%-2rem)] max-w-[420px] -translate-x-1/2 -translate-y-1/2 rounded-2xl border border-border bg-card p-6 shadow-lift focus:outline-none data-[state=closed]:animate-[dialog-out_.14s_ease-in] data-[state=open]:animate-[dialog-in_.18s_ease-out]',
+          'fixed left-1/2 top-1/2 z-[66] w-[calc(100%-2rem)] max-w-[460px] -translate-x-1/2 -translate-y-1/2 border-4 border-ink bg-paper p-6 shadow-[10px_10px_0_0_#ccff00] focus:outline-none data-[state=closed]:animate-[dialog-out_.14s_ease-in] data-[state=open]:animate-[dialog-in_.16s_ease-out]',
           className,
         )}
         {...props}

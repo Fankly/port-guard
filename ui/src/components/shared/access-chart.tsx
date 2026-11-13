@@ -24,27 +24,27 @@ function ChartTooltip({ active, payload }: TooltipContentProps) {
   const row = payload[0]?.payload as PortTraffic | undefined
   if (!row) return null
   return (
-    <div className="min-w-[168px] rounded-lg border border-border bg-card px-3 py-2.5 shadow-lift">
-      <div className="flex items-baseline justify-between gap-3">
-        <span className="font-mono text-[11px] text-muted-foreground">
-          :{row.port}
-        </span>
-        <span className="num text-[12px] font-semibold">
+    <div className="min-w-[176px] border-2 border-ink bg-paper px-3 py-2.5 shadow-[6px_6px_0_0_#000]">
+      <div className="flex items-baseline justify-between gap-3 border-b-2 border-ink pb-1.5">
+        <span className="font-mono text-[11px] font-bold">:{row.port}</span>
+        <span className="num font-sans text-[16px] font-black">
           {formatNumber(row.total)} 次
         </span>
       </div>
-      <p className="mt-0.5 truncate text-[11.5px] text-foreground">{row.name}</p>
-      <div className="mt-2 space-y-1 border-t border-border/70 pt-2 text-[11px]">
+      <p className="mt-1.5 truncate font-mono text-[11px] font-bold">
+        {row.name}
+      </p>
+      <div className="mt-2 space-y-1 font-mono text-[11px]">
         <div className="flex items-center justify-between gap-4">
-          <span className="flex items-center gap-1.5 text-muted-foreground">
-            <span className="size-1.5 rounded-full bg-chart-allow" />
+          <span className="flex items-center gap-1.5">
+            <span className="size-2 border border-ink bg-electric-cyan" />
             已放行
           </span>
           <span className="num">{formatNumber(row.allow)}</span>
         </div>
         <div className="flex items-center justify-between gap-4">
-          <span className="flex items-center gap-1.5 text-muted-foreground">
-            <span className="size-1.5 rounded-full bg-chart-block" />
+          <span className="flex items-center gap-1.5">
+            <span className="size-2 border border-ink bg-hot-pink" />
             已拦截
           </span>
           <span className="num">{formatNumber(row.block)}</span>
@@ -59,7 +59,7 @@ export function AccessByPortChart({ data }: { data: PortTraffic[] }) {
 
   if (data.length === 0) {
     return (
-      <div className="grid h-[194px] place-items-center rounded-lg border border-dashed border-border text-[12px] text-muted-foreground">
+      <div className="grid h-[194px] place-items-center border-2 border-ink bg-slab font-mono text-[12px] font-bold uppercase tracking-[0.08em]">
         样本窗口内没有访问数据
       </div>
     )
@@ -77,45 +77,46 @@ export function AccessByPortChart({ data }: { data: PortTraffic[] }) {
         >
           <CartesianGrid
             horizontal={false}
-            stroke="#e8ece6"
-            strokeDasharray="3 3"
+            stroke="#000000"
+            strokeDasharray="2 4"
+            strokeOpacity={0.18}
           />
           <XAxis type="number" hide />
           <YAxis
             type="category"
             dataKey="port"
-            width={42}
-            axisLine={false}
+            width={46}
+            axisLine={{ stroke: '#000000', strokeWidth: 2 }}
             tickLine={false}
             tick={{
-              fill: '#67746c',
-              fontSize: 10.5,
+              fill: '#000000',
+              fontSize: 10,
+              fontWeight: 700,
               fontFamily: 'var(--font-mono)',
             }}
           />
-          <Tooltip
-            content={ChartTooltip}
-            cursor={{ fill: 'rgba(15, 107, 79, 0.05)' }}
-          />
+          <Tooltip content={ChartTooltip} cursor={{ fill: '#f4f4f4' }} />
           <Bar
             dataKey="allow"
             name="已放行"
             stackId="traffic"
-            fill="#1e8b66"
-            barSize={11}
-            radius={[3, 0, 0, 3]}
+            fill="#00d9ff"
+            stroke="#000000"
+            strokeWidth={2}
+            barSize={12}
             isAnimationActive={!reduceMotion}
-            animationDuration={600}
+            animationDuration={450}
           />
           <Bar
             dataKey="block"
             name="已拦截"
             stackId="traffic"
-            fill="#c2604a"
-            barSize={11}
-            radius={[0, 3, 3, 0]}
+            fill="#ff006e"
+            stroke="#000000"
+            strokeWidth={2}
+            barSize={12}
             isAnimationActive={!reduceMotion}
-            animationDuration={600}
+            animationDuration={450}
           />
         </BarChart>
       </ResponsiveContainer>

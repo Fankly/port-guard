@@ -96,39 +96,41 @@ export default function Operations() {
   return (
     <div>
       <PageHeader
+        label="Operations / 操作"
         title="操作日志"
         description="记录规则创建、修改、启停与设置变更，便于排查“什么时候改过什么”。"
         actions={
           <Button variant="secondary" onClick={exportCsv}>
-            <ArrowDownToLine className="size-3.5" />
+            <ArrowDownToLine className="size-4" strokeWidth={3} />
             导出 CSV
           </Button>
         }
       />
 
-      <Card className="mb-4 flex flex-wrap items-center gap-x-6 gap-y-3 px-4 py-3.5 sm:px-5">
+      <Card className="mb-6 grid border-2 shadow-[8px_8px_0_0_#000] sm:grid-cols-2 lg:grid-cols-[1.1fr_1fr_1fr_1.4fr]">
         <Summary
-          icon={<History className="size-[17px]" />}
+          icon={<History className="size-5" strokeWidth={2.6} />}
           value={operations.length}
           label="条操作记录"
+          tone="dark"
         />
         <Summary
-          icon={<CircleCheck className="size-[17px]" />}
+          icon={<CircleCheck className="size-5" strokeWidth={2.6} />}
           value={operations.filter(operation => operation.result === '成功').length}
           label="次执行成功"
-          tone="green"
+          tone="lime"
         />
         <Summary
-          icon={<Clock3 className="size-[17px]" />}
+          icon={<Clock3 className="size-5" strokeWidth={2.6} />}
           value={todayCount}
           label="今天发生"
         />
-        <div className="ml-auto flex items-center gap-3">
-          <span className="inline-flex items-center gap-1.5 rounded-full border border-[#cfe6da] bg-[#eff8f2] px-2 py-0.5 text-[10px] font-medium text-[#0e6a4e]">
-            <span className="size-1.5 rounded-full bg-[#1e8b66]" />
+        <div className="flex flex-col justify-center gap-2 border-t-2 border-ink px-4 py-4 sm:col-span-2 lg:col-span-1 lg:border-l-2 lg:border-t-0">
+          <span className="inline-flex w-fit items-center gap-1.5 border-2 border-ink bg-acid-lime px-2 py-0.5 font-mono text-[11px] font-bold uppercase tracking-[0.08em]">
+            <span className="size-1.5 bg-ink" />
             记录完整
           </span>
-          <p className="hidden text-[10px] text-muted-foreground xl:block">
+          <p className="font-mono text-[11px] leading-[1.6]">
             最近一次变更：
             {operations[0]
               ? `${operations[0].action} · ${operations[0].time.slice(5, 16)}`
@@ -137,14 +139,14 @@ export default function Operations() {
         </div>
       </Card>
 
-      <Card className="overflow-hidden">
-        <div className="flex flex-col gap-2.5 border-b border-border/70 p-3 sm:flex-row sm:items-center">
+      <Card>
+        <div className="flex flex-col gap-3 border-b-2 border-ink bg-slab p-3 sm:flex-row sm:items-center">
           <SearchField
             value={query}
             onChange={setQuery}
             placeholder="搜索操作、说明或端口"
             label="搜索操作日志"
-            className="sm:max-w-[280px]"
+            className="sm:max-w-[300px]"
           />
           <div className="sm:ml-auto">
             <Segmented
@@ -160,25 +162,25 @@ export default function Operations() {
           </div>
         </div>
 
-        <div className="px-4 py-2 sm:px-5">
+        <div className="px-4 py-3 sm:px-5">
           {days.map(day => {
             const items = filtered.filter(operation =>
               operation.time.startsWith(day),
             )
             return (
               <section key={day} className="py-3">
-                <header className="mb-2.5 flex items-baseline justify-between gap-3">
-                  <h2 className="text-[12px] font-semibold tracking-[-0.01em]">
+                <header className="mb-3 flex items-baseline justify-between gap-3 border-b-2 border-ink pb-2">
+                  <h2 className="font-sans text-[18px] font-black tracking-[-0.02em]">
                     {friendlyDay(day)}
                   </h2>
-                  <span className="font-mono text-[9.5px] text-muted-foreground">
+                  <span className="border border-ink bg-paper px-1.5 py-px font-mono text-[11px] font-bold">
                     {items.length} 条记录
                   </span>
                 </header>
 
                 <div className="relative">
                   <span
-                    className="absolute bottom-3 left-[15px] top-3 w-px bg-border"
+                    className="absolute bottom-3 left-[19px] top-3 w-0.5 bg-ink"
                     aria-hidden="true"
                   />
                   {items.map(operation => {
@@ -187,31 +189,31 @@ export default function Operations() {
                     return (
                       <div
                         key={operation.id}
-                        className="group relative grid grid-cols-[auto_minmax(0,1fr)] gap-x-3 gap-y-1.5 py-2.5 sm:grid-cols-[auto_minmax(0,1fr)_auto] sm:items-center sm:gap-3.5"
+                        className="group relative grid grid-cols-[auto_minmax(0,1fr)] gap-x-3 gap-y-2 py-3 transition-colors duration-150 hover:bg-slab sm:grid-cols-[auto_minmax(0,1fr)_auto] sm:items-center sm:gap-4"
                       >
                         <span
                           className={cn(
-                            'relative z-10 grid size-8 shrink-0 place-items-center rounded-lg border bg-card shadow-xs',
+                            'relative z-10 grid size-10 shrink-0 place-items-center border-2 border-ink',
                             failed
-                              ? 'border-[#f1d5cf] text-destructive'
-                              : 'border-border text-muted-foreground group-hover:text-primary',
+                              ? 'bg-hot-pink text-ink'
+                              : 'bg-acid-lime text-ink',
                           )}
                         >
-                          <Icon className="size-3.5" />
+                          <Icon className="size-4" strokeWidth={2.6} />
                         </span>
 
                         <div className="min-w-0">
                           <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
-                            <strong className="text-[12px] font-medium">
+                            <strong className="font-sans text-[16px] font-black leading-tight">
                               {operation.action}
                             </strong>
                             {operation.port !== undefined && (
-                              <span className="rounded border border-border bg-muted/50 px-1.5 py-px font-mono text-[9.5px] text-muted-foreground">
+                              <span className="border border-ink bg-paper px-1.5 py-px font-mono text-[11px] font-bold">
                                 端口 {operation.port}
                               </span>
                             )}
                           </div>
-                          <p className="mt-0.5 line-clamp-2 text-[10.5px] leading-relaxed text-muted-foreground">
+                          <p className="mt-1 line-clamp-2 font-mono text-[12px] leading-[1.6]">
                             {operation.detail}
                           </p>
                         </div>
@@ -219,23 +221,23 @@ export default function Operations() {
                         <div className="col-start-2 flex flex-wrap items-center gap-2 sm:col-auto sm:flex-col sm:items-end sm:gap-1">
                           <span
                             className={cn(
-                              'inline-flex items-center gap-1 rounded-full border px-1.5 py-px text-[9.5px]',
+                              'inline-flex items-center gap-1 border-2 border-ink px-1.5 py-px font-mono text-[11px] font-bold uppercase',
                               failed
-                                ? 'border-[#f1d5cf] bg-destructive-soft/70 text-destructive'
-                                : 'border-[#cfe6da] bg-[#eff8f2] text-[#0e6a4e]',
+                                ? 'bg-hot-pink text-ink'
+                                : 'bg-electric-cyan text-ink',
                             )}
                           >
                             {failed ? (
-                              <CircleX className="size-2.5" />
+                              <CircleX className="size-2.5" strokeWidth={3} />
                             ) : (
-                              <CircleCheck className="size-2.5" />
+                              <CircleCheck className="size-2.5" strokeWidth={3} />
                             )}
                             {operation.result}
                           </span>
-                          <code className="font-mono text-[9.5px] text-muted-foreground">
+                          <code className="font-mono text-[11px] font-bold">
                             {shortTime(operation.time)}
                           </code>
-                          <span className="hidden text-[9.5px] text-muted-foreground sm:block">
+                          <span className="hidden font-mono text-[11px] sm:block">
                             本机管理员
                           </span>
                         </div>
@@ -250,7 +252,7 @@ export default function Operations() {
 
         {filtered.length === 0 && (
           <EmptyState
-            icon={<History className="size-5" />}
+            icon={<History className="size-6" strokeWidth={2.4} />}
             title="没有匹配的操作记录"
             description="换一个关键词，或把类型筛选改回“全部”。"
             action={
@@ -262,28 +264,26 @@ export default function Operations() {
                   setFilter('all')
                 }}
               >
-                <CircleCheck className="size-3.5" />
+                <CircleCheck className="size-3.5" strokeWidth={3} />
                 清除筛选
               </Button>
             }
           />
         )}
 
-        <footer className="flex flex-wrap items-center justify-between gap-2 border-t border-border/70 px-4 py-3 text-[10.5px] text-muted-foreground sm:px-5">
-          <span>共 {filtered.length} 条记录 · 最多保留最近 100 条</span>
-          <span className="flex items-center gap-1.5 text-warning">
-            <span className="size-1.5 rounded-full bg-[#c08a35]" />
+        <footer className="flex flex-wrap items-center justify-between gap-2 border-t-2 border-ink bg-slab px-4 py-3 font-mono text-[11px] sm:px-5">
+          <span className="font-bold">共 {filtered.length} 条记录 · 最多保留最近 100 条</span>
+          <span className="inline-flex items-center gap-1.5 border border-ink bg-tangerine px-1.5 py-px font-bold">
+            <span className="size-1.5 bg-ink" />
             界面演示样本
           </span>
         </footer>
       </Card>
 
-      <div className="mt-3 flex gap-2.5 rounded-xl border border-border/70 bg-card/60 px-3.5 py-3 text-[10.5px] leading-relaxed text-muted-foreground">
-        <History className="mt-0.5 size-3.5 shrink-0" />
-        <p>
-          <strong className="font-medium text-foreground">
-            日志是界面预览的一部分。
-          </strong>
+      <div className="mt-6 flex gap-3 border-2 border-ink bg-paper px-4 py-3.5 shadow-[4px_4px_0_0_#000]">
+        <History className="mt-0.5 size-4 shrink-0" strokeWidth={2.6} />
+        <p className="font-mono text-[12px] leading-[1.7]">
+          <strong className="font-bold">日志是界面预览的一部分。</strong>
           真正接入后台服务后，操作结果会由执行层返回，失败原因也会保留在这里，不用“配置已保存”代替“规则已生效”。
         </p>
       </div>
@@ -300,23 +300,31 @@ function Summary({
   icon: ReactNode
   value: number
   label: string
-  tone?: 'green'
+  tone?: 'dark' | 'lime'
 }) {
   return (
-    <div className="flex items-center gap-2.5">
+    <div
+      className={cn(
+        'flex items-center gap-3 border-b-2 border-ink px-4 py-4 last:border-b-0 sm:border-r-2 sm:last:border-r-0 lg:border-b-0',
+        tone === 'dark' && 'bg-ink text-paper',
+        tone === 'lime' && 'bg-acid-lime text-ink',
+      )}
+    >
       <span
         className={cn(
-          'grid size-8 place-items-center rounded-lg',
-          tone === 'green'
-            ? 'bg-primary-soft text-primary'
-            : 'bg-muted text-muted-foreground',
+          'grid size-10 shrink-0 place-items-center border-2',
+          tone === 'dark'
+            ? 'border-paper bg-paper text-ink'
+            : 'border-ink bg-paper text-ink',
         )}
       >
         {icon}
       </span>
       <div>
-        <div className="num text-[16px] font-semibold leading-none">{value}</div>
-        <span className="mt-0.5 block text-[10px] text-muted-foreground">
+        <div className="num font-sans text-[30px] font-black leading-[0.9]">
+          {value}
+        </div>
+        <span className="mt-1 block font-mono text-[11px] font-bold uppercase tracking-[0.1em]">
           {label}
         </span>
       </div>

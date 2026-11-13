@@ -5,32 +5,34 @@ import type { ComponentProps } from 'react'
 import { cn } from '../../lib/utils'
 
 export const buttonVariants = cva(
-  'inline-flex shrink-0 select-none items-center justify-center gap-1.5 whitespace-nowrap rounded-[10px] font-medium transition-[background-color,border-color,color,box-shadow,transform] duration-150 active:scale-[0.985] disabled:pointer-events-none disabled:opacity-45 [&_svg]:shrink-0',
+  'inline-flex shrink-0 select-none items-center justify-center gap-2 whitespace-nowrap border-2 border-ink bg-paper font-mono text-[12px] font-bold uppercase leading-none tracking-[0.12em] transition-all duration-150 ease-out disabled:pointer-events-none disabled:border-ink disabled:bg-slab disabled:text-ink disabled:shadow-none [&_svg]:shrink-0',
   {
     variants: {
       variant: {
         default:
-          'bg-primary text-primary-foreground shadow-[0_1px_2px_rgba(10,86,64,0.24),inset_0_1px_0_rgba(255,255,255,0.12)] hover:bg-primary-strong',
+          'text-ink shadow-[4px_4px_0_0_#000] hover:-translate-x-1 hover:-translate-y-1 hover:bg-acid-lime hover:shadow-[10px_10px_0_0_#000] active:translate-x-[6px] active:translate-y-[6px] active:shadow-none',
+        primary:
+          'bg-hot-pink text-ink shadow-[4px_4px_0_0_#000] hover:-translate-x-1 hover:-translate-y-1 hover:bg-acid-lime hover:text-ink hover:shadow-[10px_10px_0_0_#000] active:translate-x-[6px] active:translate-y-[6px] active:shadow-none',
         secondary:
-          'border border-border bg-card text-foreground shadow-xs hover:border-border-strong hover:bg-secondary/70',
+          'text-ink shadow-[4px_4px_0_0_#000] hover:-translate-x-1 hover:-translate-y-1 hover:bg-electric-cyan hover:shadow-[10px_10px_0_0_#000] active:translate-x-[6px] active:translate-y-[6px] active:shadow-none',
         outline:
-          'border border-border bg-transparent text-foreground hover:bg-muted',
+          'text-ink shadow-[4px_4px_0_0_#000] hover:-translate-x-1 hover:-translate-y-1 hover:bg-acid-lime hover:shadow-[10px_10px_0_0_#000] active:translate-x-[6px] active:translate-y-[6px] active:shadow-none',
         ghost:
-          'text-muted-foreground hover:bg-muted hover:text-foreground',
+          'border-ink bg-paper text-ink shadow-none hover:bg-slab active:translate-x-[2px] active:translate-y-[2px]',
         subtle:
-          'bg-primary-soft text-accent-foreground hover:bg-[#dcefe4]',
+          'bg-acid-lime text-ink shadow-[4px_4px_0_0_#000] hover:-translate-x-1 hover:-translate-y-1 hover:bg-electric-cyan hover:shadow-[10px_10px_0_0_#000] active:translate-x-[6px] active:translate-y-[6px] active:shadow-none',
         danger:
-          'bg-destructive text-destructive-foreground shadow-[0_1px_2px_rgba(120,32,24,0.2)] hover:bg-[#9d352b]',
+          'bg-hot-pink text-ink shadow-[4px_4px_0_0_#000] hover:-translate-x-1 hover:-translate-y-1 hover:bg-ink hover:text-paper hover:shadow-[10px_10px_0_0_#000] active:translate-x-[6px] active:translate-y-[6px] active:shadow-none',
         'danger-ghost':
-          'text-destructive hover:bg-destructive-soft',
-        link: 'h-auto rounded-none p-0 text-primary underline-offset-4 hover:underline',
+          'border-transparent bg-transparent text-hot-pink shadow-none hover:border-ink hover:bg-hot-pink hover:text-ink active:translate-x-[2px] active:translate-y-[2px]',
+        link: 'h-auto border-0 bg-transparent p-0 text-[12px] normal-case tracking-normal text-ink underline decoration-2 underline-offset-4 shadow-none hover:bg-acid-lime hover:no-underline active:translate-x-0 active:translate-y-0',
       },
       size: {
-        default: 'h-9 px-3.5 text-[12.5px]',
-        sm: 'h-8 px-3 text-[12px]',
-        lg: 'h-10 px-4.5 text-[13px]',
-        icon: 'size-8',
-        'icon-sm': 'size-7',
+        default: 'h-10 px-4 py-2.5',
+        sm: 'h-9 px-3 py-2',
+        lg: 'h-12 px-6 py-3',
+        icon: 'size-10 p-0',
+        'icon-sm': 'size-8 p-0',
       },
     },
     defaultVariants: {

@@ -25,7 +25,7 @@ export function MobileNav({
 }) {
   return (
     <nav
-      className="fixed inset-x-0 bottom-0 z-40 border-t border-border bg-card/95 pb-[env(safe-area-inset-bottom)] backdrop-blur-md lg:hidden"
+      className="fixed inset-x-0 bottom-0 z-40 border-t-4 border-ink bg-paper pb-[env(safe-area-inset-bottom)] lg:hidden"
       aria-label="移动端主导航"
     >
       <div className="grid grid-cols-5">
@@ -39,18 +39,13 @@ export function MobileNav({
               onClick={() => onNavigate(item.id)}
               aria-current={active ? 'page' : undefined}
               className={cn(
-                'flex flex-col items-center gap-1 py-2 text-[10px] transition-colors',
-                active ? 'text-primary' : 'text-muted-foreground',
+                'flex flex-col items-center gap-1 border-r-2 border-ink py-2.5 font-mono text-[11px] font-bold uppercase tracking-[0.06em] transition-colors duration-150 last:border-r-0',
+                active
+                  ? 'bg-ink text-paper'
+                  : 'bg-paper text-ink hover:bg-acid-lime',
               )}
             >
-              <span
-                className={cn(
-                  'grid h-7 w-10 place-items-center rounded-lg transition-colors',
-                  active && 'bg-primary-soft',
-                )}
-              >
-                <Icon size={17} strokeWidth={active ? 2.1 : 1.9} />
-              </span>
+              <Icon size={18} strokeWidth={active ? 2.8 : 2.2} />
               {item.label}
             </button>
           )

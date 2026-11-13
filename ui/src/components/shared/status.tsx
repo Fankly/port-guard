@@ -4,10 +4,13 @@ import { Badge } from '../ui/badge'
 
 export function LiveDot({ className }: { className?: string }) {
   return (
-    <span className={cn('relative flex size-1.5 shrink-0', className)} aria-hidden="true">
-      <span className="absolute inline-flex size-full animate-ping rounded-full bg-emerald-400 opacity-60" />
-      <span className="relative inline-flex size-1.5 rounded-full bg-emerald-400" />
-    </span>
+    <span
+      className={cn(
+        'inline-flex size-2 shrink-0 border-2 border-ink bg-acid-lime',
+        className,
+      )}
+      aria-hidden="true"
+    />
   )
 }
 
@@ -15,10 +18,10 @@ export function PreviewChip() {
   return (
     <Badge
       variant="outline"
-      className="bg-card/70 text-[10px] font-normal text-muted-foreground backdrop-blur"
+      className="gap-1.5 bg-paper font-mono text-[11px] font-bold tracking-[0.12em] shadow-[2px_2px_0_0_#000]"
       title="所有数据均为界面演示样本，不会修改系统防火墙"
     >
-      <span className="size-1 rounded-full bg-[#b98a3c]" />
+      <span className="size-1.5 bg-hot-pink" aria-hidden="true" />
       设计预览
     </Badge>
   )
@@ -28,10 +31,10 @@ export function ProtocolTag({ protocol }: { protocol: 'tcp' | 'udp' }) {
   return (
     <span
       className={cn(
-        'inline-flex items-center rounded-[5px] px-1.5 py-px font-mono text-[9.5px] font-medium tracking-wide',
+        'inline-flex items-center border-2 border-ink px-1.5 py-px font-mono text-[11px] font-bold leading-[1.4] tracking-[0.08em]',
         protocol === 'tcp'
-          ? 'bg-[#eaf1ee] text-[#456355]'
-          : 'bg-[#f4efe4] text-[#7c673f]',
+          ? 'bg-acid-lime text-ink'
+          : 'bg-electric-cyan text-ink',
       )}
     >
       {protocol.toUpperCase()}
@@ -43,17 +46,18 @@ export function ResultBadge({ result }: { result: 'allow' | 'block' }) {
   return (
     <span
       className={cn(
-        'inline-flex items-center gap-1.5 rounded-full border px-2 py-0.5 text-[10.5px] font-medium',
+        'inline-flex items-center gap-1.5 border-2 border-ink px-2 py-0.5 font-mono text-[12px] font-bold uppercase tracking-[0.06em]',
         result === 'allow'
-          ? 'border-[#cfe6da] bg-[#eef7f2] text-[#0e6a4e]'
-          : 'border-[#f1d5cf] bg-[#fbf0ee] text-[#a13a2e]',
+          ? 'bg-electric-cyan text-ink'
+          : 'bg-hot-pink text-ink',
       )}
     >
       <span
         className={cn(
-          'size-1.5 rounded-full',
-          result === 'allow' ? 'bg-[#1e8b66]' : 'bg-[#c2604a]',
+          'size-1.5 border border-current',
+          result === 'allow' ? 'bg-ink' : 'bg-paper',
         )}
+        aria-hidden="true"
       />
       {result === 'allow' ? '已放行' : '已拦截'}
     </span>
@@ -70,17 +74,15 @@ export function StatePill({
   return (
     <span
       className={cn(
-        'inline-flex items-center gap-1.5 rounded-full border px-2 py-0.5 text-[10.5px] font-medium',
-        enabled
-          ? 'border-[#cfe6da] bg-[#eff8f2] text-[#0e6a4e]'
-          : 'border-border bg-muted/70 text-muted-foreground',
+        'inline-flex items-center gap-1.5 border-2 border-ink px-2 py-0.5 font-mono text-[12px] font-bold uppercase tracking-[0.06em]',
+        enabled ? 'bg-acid-lime text-ink' : 'bg-slab text-ink',
         className,
       )}
     >
       {enabled ? (
-        <LiveDot className="scale-90" />
+        <span className="size-1.5 bg-ink" aria-hidden="true" />
       ) : (
-        <span className="size-1.5 rounded-full bg-muted-foreground/50" />
+        <span className="size-1.5 border border-ink bg-paper" aria-hidden="true" />
       )}
       {enabled ? '生效中' : '已停用'}
     </span>
@@ -103,18 +105,20 @@ export function EmptyState({
   return (
     <div
       className={cn(
-        'flex flex-col items-center justify-center px-6 py-14 text-center',
+        'flex flex-col items-start justify-center px-6 py-12 text-left',
         className,
       )}
     >
-      <span className="grid size-11 place-items-center rounded-xl border border-border bg-muted/60 text-muted-foreground">
+      <span className="grid size-12 place-items-center border-2 border-ink bg-acid-lime text-ink shadow-[4px_4px_0_0_#000]">
         {icon}
       </span>
-      <h3 className="mt-4 text-[13.5px] font-semibold">{title}</h3>
-      <p className="mt-1 max-w-[320px] text-[12px] leading-relaxed text-muted-foreground">
+      <h3 className="mt-5 font-sans text-[22px] font-black leading-[1.05] tracking-[-0.02em]">
+        {title}
+      </h3>
+      <p className="mt-2 max-w-[420px] font-mono text-[12px] leading-[1.65] text-ink">
         {description}
       </p>
-      {action && <div className="mt-4">{action}</div>}
+      {action && <div className="mt-5">{action}</div>}
     </div>
   )
 }

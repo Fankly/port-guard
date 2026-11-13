@@ -37,6 +37,15 @@ npm run dev    # http://127.0.0.1:1420
 - 规则核心的 `render`/`preview_policy` 仍只生成独立的 anchor 预览，**不加载规则、不启用 PF、不请求管理员权限**（当前由 Rust 测试覆盖，尚未接到界面按钮）。
 - 后台服务、LaunchDaemon、PF 实际挂载、Windows WFP、真实日志和安装包仍未实现。
 
+前后台 IPC 契约、联调步骤与本轮验收结果见 [`docs/前后台联调.md`](docs/前后台联调.md)。
+
+### Windows 现状
+
+- 预览包（界面 + SQLite）通过 `.github/workflows/windows-build.yml` 在 `windows-latest` 上构建；每次 push/PR 运行 `cargo test --workspace`，安装包只在手动触发时用 `--bundles nsis` 产出。产物不包含 WFP 执行层，因此不会拦截任何流量。
+- `doctor`、`check`、`plan-update`、`kill` 只在 macOS 可用；在 Windows 上执行会返回明确的“仅 macOS”错误，而不是找不到 `pfctl` 的模糊失败。`render`、`decode` 和桌面壳在各平台都可用。
+- 界面的设备名、引擎名、日志源与首次演示数据按平台渲染：Windows 显示 `WFP` / `WFP 事件` / “这台 PC”，macOS 显示 `PF` / `PF 日志` / “这台 Mac”。
+- `bundle.targets` 为 `all`，Windows 安装器使用 `embedBootstrapper`（未内嵌 WebView2 离线包，目标机缺少 WebView2 时需要联网）。产物未做代码签名，Windows 会提示 SmartScreen“未知发布者”。
+
 首次准备与启动：
 
 ```sh

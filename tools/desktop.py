@@ -26,13 +26,15 @@ if toolchain_root:
     env['CARGO_HOME'] = str(toolchain_root / 'cargo')
     env['RUSTUP_HOME'] = str(toolchain_root / 'rustup')
     env['RUSTUP_TOOLCHAIN'] = candidates[0].name
-    env['RUSTC'] = str(candidates[0] / 'bin/rustc')
-    env['RUSTDOC'] = str(candidates[0] / 'bin/rustdoc')
+    exe = '.exe' if os.name == 'nt' else ''
+    env['RUSTC'] = str(candidates[0] / 'bin' / f'rustc{exe}')
+    env['RUSTDOC'] = str(candidates[0] / 'bin' / f'rustdoc{exe}')
     env['PATH'] = str(candidates[0] / 'bin') + os.pathsep + env.get('PATH', '')
 if config.get('target_dir'):
     env['CARGO_TARGET_DIR'] = config['target_dir']
 
-tauri = root / 'node_modules/.bin/tauri'
+# npm installs a `tauri` shell shim on Unix and `tauri.cmd` on Windows.
+tauri = root / 'node_modules' / '.bin' / ('tauri.cmd' if os.name == 'nt' else 'tauri')
 if not tauri.exists():
     raise SystemExit('Install the desktop dependencies first: npm install')
 if len(sys.argv) < 2:

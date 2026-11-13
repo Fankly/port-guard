@@ -1,69 +1,96 @@
 @import "tailwindcss";
 
 /* ============================================================
-   Port Guard design tokens
-   Calm evergreen workspace. Light surfaces, one dark anchor.
+   Port Guard — Neo-brutalist system
+   Ink frames, paper surfaces, zero radius, hard offset shadows.
    ============================================================ */
 
 @theme {
-  --font-sans: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI",
-    "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "Noto Sans SC",
-    sans-serif;
-  --font-mono: "SFMono-Regular", "SF Mono", ui-monospace, Menlo, Consolas,
+  --font-sans: "Inter", "Helvetica Neue", Arial, "PingFang SC",
+    "Hiragino Sans GB", "Microsoft YaHei", "Noto Sans SC", sans-serif;
+  --font-mono: ui-monospace, "SFMono-Regular", "SF Mono", Menlo, Consolas,
     "Liberation Mono", monospace;
 
-  --color-background: #f4f6f2;
-  --color-foreground: #16211b;
+  /* Palette --------------------------------------------------- */
+  --color-ink: #000000;
+  --color-paper: #ffffff;
+  --color-slab: #f4f4f4;
+  --color-hot-pink: #ff006e;
+  --color-acid-lime: #ccff00;
+  --color-electric-cyan: #00d9ff;
+  --color-tangerine: #ff9500;
+
+  --color-background: #ffffff;
+  --color-foreground: #000000;
   --color-card: #ffffff;
-  --color-card-foreground: #16211b;
+  --color-card-foreground: #000000;
   --color-popover: #ffffff;
-  --color-popover-foreground: #16211b;
+  --color-popover-foreground: #000000;
 
-  --color-primary: #0f6b4f;
-  --color-primary-strong: #0a5640;
-  --color-primary-foreground: #f7fbf8;
-  --color-primary-soft: #e8f3ec;
+  --color-primary: #ff006e;
+  --color-primary-strong: #000000;
+  --color-primary-foreground: #ffffff;
+  --color-primary-soft: #ccff00;
 
-  --color-secondary: #f1f4ef;
-  --color-secondary-foreground: #26332b;
-  --color-muted: #eef1ec;
-  --color-muted-foreground: #616e66;
-  --color-accent: #e8f3ed;
-  --color-accent-foreground: #0b4d39;
+  --color-secondary: #ffffff;
+  --color-secondary-foreground: #000000;
+  --color-muted: #f4f4f4;
+  --color-muted-foreground: #000000;
+  --color-accent: #ccff00;
+  --color-accent-foreground: #000000;
 
-  --color-destructive: #b23f33;
-  --color-destructive-foreground: #fff8f7;
-  --color-destructive-soft: #fbeeec;
-  --color-warning: #98651a;
-  --color-warning-soft: #fbf4e5;
-  --color-success: #127a58;
+  --color-destructive: #ff006e;
+  --color-destructive-foreground: #ffffff;
+  --color-destructive-soft: #f4f4f4;
+  --color-warning: #ff9500;
+  --color-warning-soft: #f4f4f4;
+  --color-success: #00d9ff;
 
-  --color-border: #e3e8e1;
-  --color-border-strong: #d3dcd2;
-  --color-input: #dbe3da;
-  --color-ring: #0f6b4f;
+  --color-border: #000000;
+  --color-border-strong: #000000;
+  --color-input: #000000;
+  --color-ring: #ff006e;
 
-  --color-sidebar: #0b1d16;
-  --color-sidebar-2: #0e251c;
-  --color-sidebar-foreground: #dae6df;
-  --color-sidebar-muted: #92a89b;
-  --color-sidebar-border: #1d3529;
+  --color-sidebar: #000000;
+  --color-sidebar-2: #000000;
+  --color-sidebar-foreground: #ffffff;
+  --color-sidebar-muted: #ffffff;
+  --color-sidebar-border: #ffffff;
 
-  --color-chart-allow: #1e8b66;
-  --color-chart-block: #c2604a;
+  --color-chart-allow: #00d9ff;
+  --color-chart-block: #ff006e;
 
-  --radius-xs: 6px;
-  --radius-sm: 8px;
-  --radius-md: 10px;
-  --radius-lg: 12px;
-  --radius-xl: 16px;
-  --radius-2xl: 20px;
+  /* Typography ------------------------------------------------ */
+  --text-display: 72px;
+  --leading-display: 0.95;
+  --tracking-display: -0.02em;
+  --text-heading-lg: 48px;
+  --leading-heading-lg: 1;
+  --tracking-heading-lg: -0.02em;
+  --text-heading: 32px;
+  --leading-heading: 1.1;
+  --tracking-heading: -0.01em;
+  --text-subheading: 24px;
+  --leading-subheading: 1.2;
+  --text-body: 16px;
+  --leading-body: 1.6;
+  --text-body-sm: 14px;
+  --leading-body-sm: 1.6;
+  --text-label: 12px;
+  --leading-label: 1.4;
+  --tracking-label: 0.12em;
 
-  --shadow-xs: 0 1px 2px rgba(20, 38, 28, 0.04);
-  --shadow-card: 0 1px 2px rgba(20, 38, 28, 0.04),
-    0 18px 40px -32px rgba(20, 38, 28, 0.28);
-  --shadow-lift: 0 2px 4px rgba(20, 38, 28, 0.04),
-    0 26px 60px -36px rgba(20, 38, 28, 0.38);
+  /* Shape and depth ------------------------------------------- */
+  --radius-xs: 0px;
+  --radius-sm: 0px;
+  --radius-md: 0px;
+  --radius-lg: 0px;
+  --radius-xl: 0px;
+  --radius-2xl: 0px;
+
+  --shadow-xs: 2px 2px 0 0 #000000;
+  --shadow-card: 8px 8px 0 0 #000000;
+  --shadow-lift: 10px 10px 0 0 #000000;
 }
 
 @layer base {
@@ -74,95 +101,173 @@
   }
 
   body {
-    @apply bg-background text-foreground font-sans text-[13px] leading-[1.55];
+    @apply bg-background text-foreground font-mono text-[14px] leading-[1.6];
     min-width: 320px;
   }
 
+  /* Structural rule: the interface contains no rounded geometry. */
+  *,
+  *::before,
+  *::after {
+    border-radius: 0 !important;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    @apply font-sans font-black tracking-[-0.02em];
+  }
+
   ::selection {
-    background: #cfe8da;
-    color: #0c3929;
+    background: var(--color-hot-pink);
+    color: var(--color-paper);
   }
 
   :where(a, button, [tabindex]):focus-visible {
-    outline: 2px solid var(--color-primary);
-    outline-offset: 2px;
+    outline: 3px solid var(--color-hot-pink);
+    outline-offset: 3px;
   }
 
   :where(input, select, textarea):focus-visible {
     outline: none;
   }
 
-  [data-dark-surface] :is(button, a, [tabindex]):focus-visible,
-  [data-sidebar] :is(button, a, [tabindex]):focus-visible {
-    outline-color: #7ee7ba;
+  [data-dark-surface] :is(button, a, [tabindex]):focus-visible {
+    outline-color: var(--color-acid-lime);
   }
 
   * {
-    scrollbar-width: thin;
-    scrollbar-color: #cfd8cf transparent;
+    scrollbar-width: auto;
+    scrollbar-color: #000000 #ffffff;
   }
 
   ::-webkit-scrollbar {
-    width: 10px;
-    height: 10px;
+    width: 12px;
+    height: 12px;
   }
 
   ::-webkit-scrollbar-track {
-    background: transparent;
+    background: #ffffff;
+    border-left: 2px solid #000000;
   }
 
   ::-webkit-scrollbar-thumb {
-    background: #cfd8cf;
-    border: 3px solid transparent;
-    border-radius: 99px;
-    background-clip: content-box;
-  }
-
-  ::-webkit-scrollbar-thumb:hover {
-    background: #b6c4b9;
-    border: 3px solid transparent;
-    background-clip: content-box;
+    background: #000000;
+    border: 3px solid #ffffff;
   }
 }
 
 @layer components {
-  /* Faint blueprint grid used only inside the dark status panel. */
-  .hero-grid {
-    background-image: linear-gradient(
-        to right,
-        rgba(255, 255, 255, 0.045) 1px,
-        transparent 1px
-      ),
-      linear-gradient(to bottom, rgba(255, 255, 255, 0.045) 1px, transparent 1px);
-    background-size: 42px 42px;
-    mask-image: radial-gradient(
-      120% 110% at 78% 0%,
-      #000 18%,
-      transparent 74%
-    );
+  .hard-shadow {
+    box-shadow: 4px 4px 0 0 #000000;
+  }
+
+  .hard-shadow-lg {
+    box-shadow: 8px 8px 0 0 #000000;
+  }
+
+  .brutal-hover {
+    transition:
+      transform 150ms ease-out,
+      box-shadow 150ms ease-out,
+      background-color 150ms ease-out,
+      color 150ms ease-out;
+  }
+
+  .brutal-hover:hover {
+    transform: translate(-4px, -4px);
+    box-shadow: 10px 10px 0 0 #000000;
+  }
+
+  .brutal-hover:active {
+    transform: translate(6px, 6px);
+    box-shadow: none;
+  }
+
+  .checker {
+    background-color: #ffffff;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 16 16'%3E%3Cpath fill='%23000000' d='M0 0h8v8H0zM8 8h8v8H8z'/%3E%3C/svg%3E");
+    background-size: 16px 16px;
+  }
+
+  .marquee-track {
+    animation: marquee-scroll 36s linear infinite;
+    will-change: transform;
+  }
+
+  .marquee-bar:hover .marquee-track {
+    animation-play-state: paused;
   }
 
   .num {
     font-variant-numeric: tabular-nums;
-    letter-spacing: -0.015em;
+    letter-spacing: 0;
+  }
+
+  .rule-list-row {
+    transition:
+      background-color 150ms ease-out,
+      transform 150ms ease-out,
+      box-shadow 150ms ease-out;
+  }
+
+  .rule-list-row:hover {
+    background-color: var(--color-slab);
+    transform: translate(-2px, -2px);
+    box-shadow: 4px 4px 0 0 #000000;
+    position: relative;
+    z-index: 1;
+  }
+
+  .rule-list-row:active {
+    transform: translate(2px, 2px);
+    box-shadow: none;
   }
 }
 
-/* Sonner: inherit the app's surface language instead of its defaults. */
+@keyframes marquee-scroll {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+/* Sonner: keep notifications inside the same physical surface language. */
 [data-sonner-toaster] {
-  font-family: var(--font-sans);
-  --width: 348px;
+  font-family: var(--font-mono);
+  --width: 372px;
 }
 
 [data-sonner-toast] {
-  border-radius: 12px;
-  border-color: var(--color-border);
-  font-size: 12.5px;
-  box-shadow: var(--shadow-lift);
+  border: 3px solid #000000 !important;
+  border-radius: 0 !important;
+  background: #ffffff !important;
+  color: #000000 !important;
+  font-family: var(--font-mono) !important;
+  font-size: 12px !important;
+  box-shadow: 6px 6px 0 0 #000000 !important;
 }
 
 [data-sonner-toast] [data-title] {
-  font-weight: 550;
+  font-weight: 700;
+}
+
+[data-sonner-toast] [data-description] {
+  color: #000000 !important;
+}
+
+[data-sonner-toast][data-type="error"] {
+  background: var(--color-hot-pink) !important;
+  color: #000000 !important;
+}
+
+[data-sonner-toast][data-type="error"] [data-description] {
+  color: #000000 !important;
 }
 
 /* Recharts */
@@ -175,34 +280,8 @@
   font-family: var(--font-mono);
 }
 
-@keyframes fade-in {
-  from {
-    opacity: 0;
-  }
-}
-
-@keyframes fade-out {
-  to {
-    opacity: 0;
-  }
-}
-
-@keyframes overlay-in {
-  from {
-    opacity: 0;
-  }
-  to {
-    opacity: 1;
-  }
-}
-
-@keyframes overlay-out {
-  from {
-    opacity: 1;
-  }
-  to {
-    opacity: 0;
-  }
+.recharts-tooltip-cursor {
+  fill: #f4f4f4;
 }
 
 @keyframes sheet-in {
@@ -225,23 +304,19 @@
 
 @keyframes dialog-in {
   from {
-    opacity: 0;
-    scale: 0.97;
+    transform: translate(-50%, -48%);
   }
   to {
-    opacity: 1;
-    scale: 1;
+    transform: translate(-50%, -50%);
   }
 }
 
 @keyframes dialog-out {
   from {
-    opacity: 1;
-    scale: 1;
+    transform: translate(-50%, -50%);
   }
   to {
-    opacity: 0;
-    scale: 0.98;
+    transform: translate(-50%, -46%);
   }
 }
 
@@ -253,5 +328,9 @@
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
     scroll-behavior: auto !important;
+  }
+
+  .marquee-track {
+    animation: none !important;
   }
 }

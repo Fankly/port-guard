@@ -24,7 +24,7 @@ export function Segmented<T extends string>({
       role="group"
       aria-label={ariaLabel}
       className={cn(
-        'inline-flex shrink-0 items-center gap-0.5 rounded-[10px] border border-border bg-muted/70 p-0.5',
+        'inline-flex shrink-0 items-center border-2 border-ink bg-paper p-0.5',
         className,
       )}
     >
@@ -37,20 +37,18 @@ export function Segmented<T extends string>({
             onClick={() => onChange(option.value)}
             aria-pressed={active}
             className={cn(
-              'inline-flex h-7 items-center gap-1.5 rounded-[8px] px-2.5 text-[11.5px] transition-[background-color,color,box-shadow] duration-150',
+              'inline-flex h-8 items-center gap-1.5 px-2.5 font-mono text-[11px] font-bold uppercase tracking-[0.04em] transition-colors duration-150',
               active
-                ? 'bg-card font-medium text-foreground shadow-xs'
-                : 'text-muted-foreground hover:text-foreground',
+                ? 'bg-ink text-paper'
+                : 'text-ink hover:bg-acid-lime',
             )}
           >
             {option.label}
             {option.count !== undefined && (
               <span
                 className={cn(
-                  'rounded-full px-1.5 py-px font-mono text-[9.5px] tabular-nums',
-                  active
-                    ? 'bg-primary-soft text-accent-foreground'
-                    : 'bg-black/[0.045] text-muted-foreground',
+                  'border border-current px-1 py-px font-mono text-[11px] tabular-nums',
+                  active ? 'bg-paper text-ink' : 'bg-paper text-ink',
                 )}
               >
                 {option.count}

@@ -15,7 +15,10 @@ pub fn plan_update(
         before.interface == after.interface,
         "当前撤权预览只支持同一网络接口；接口迁移需要单独验证"
     );
-    ensure!(!sources.is_empty() && !locals.is_empty(), "必须列出实验来源和本机 IP");
+    ensure!(
+        !sources.is_empty() && !locals.is_empty(),
+        "必须列出实验来源和本机 IP"
+    );
     let sources: BTreeSet<_> = sources.iter().copied().collect();
     let locals: BTreeSet<_> = locals.iter().copied().collect();
     for ip in sources.iter().chain(&locals) {
@@ -30,8 +33,12 @@ pub fn plan_update(
         .validate()?;
     }
     ensure!(
-        sources.iter().all(|s| locals.iter().any(|l| s.is_ipv4() == l.is_ipv4()))
-            && locals.iter().all(|l| sources.iter().any(|s| s.is_ipv4() == l.is_ipv4())),
+        sources
+            .iter()
+            .all(|s| locals.iter().any(|l| s.is_ipv4() == l.is_ipv4()))
+            && locals
+                .iter()
+                .all(|l| sources.iter().any(|s| s.is_ipv4() == l.is_ipv4())),
         "每个来源和本机 IP 都必须有同地址族的对应地址"
     );
     let keys: BTreeSet<_> = before
@@ -43,8 +50,14 @@ pub fn plan_update(
     let mut changes = vec![];
     let mut cleanup = vec![];
     for (port, protocol) in keys {
-        let old = before.services.iter().find(|s| (s.port, s.protocol) == (port, protocol));
-        let new = after.services.iter().find(|s| (s.port, s.protocol) == (port, protocol));
+        let old = before
+            .services
+            .iter()
+            .find(|s| (s.port, s.protocol) == (port, protocol));
+        let new = after
+            .services
+            .iter()
+            .find(|s| (s.port, s.protocol) == (port, protocol));
         for source in &sources {
             let was_allowed = old.map(|s| s.allows(*source));
             let now_allowed = new.map(|s| s.allows(*source));
@@ -75,7 +88,8 @@ pub fn plan_update(
                         protocol,
                         interface: after.interface.clone(),
                     };
-                    let hex = |bytes: &[u8]| bytes.iter().map(|b| format!("{b:02x}")).collect::<String>();
+                    let hex =
+                        |bytes: &[u8]| bytes.iter().map(|b| format!("{b:02x}")).collect::<String>();
                     cleanup.push(json!({
                         "source": source, "local": local, "port": port, "protocol": protocol,
                         "interface": after.interface,
@@ -107,12 +121,20 @@ mod tests {
     fn policy(services: Value) -> CompiledPolicy {
         serde_json::from_value::<Policy>(json!({
             "interface": "en0", "log_interface": "pflog7", "services": services,
-        })).unwrap().compile().unwrap()
+        }))
+        .unwrap()
+        .compile()
+        .unwrap()
     }
 
     fn plan(before: Value, after: Value) -> Value {
-        plan_update(&policy(before), &policy(after),
-            &["192.0.2.20".parse().unwrap()], &["192.0.2.10".parse().unwrap()]).unwrap()
+        plan_update(
+            &policy(before),
+            &policy(after),
+            &["192.0.2.20".parse().unwrap()],
+            &["192.0.2.10".parse().unwrap()],
+        )
+        .unwrap()
     }
 
     #[test]
@@ -141,12 +163,18 @@ mod tests {
         assert_eq!(cleanup.len(), 1);
         assert_eq!(cleanup[0]["port"], 18080);
         assert_eq!(cleanup[0]["protocol"], "tcp");
-        assert_eq!(cleanup[0]["request_hex_reverse"].as_str().unwrap().len(), 432);
+        assert_eq!(
+            cleanup[0]["request_hex_reverse"].as_str().unwrap().len(),
+            432
+        );
     }
 
     #[test]
     fn enabling_empty_whitelist_includes_preexisting_states() {
-        let result = plan(json!([]), json!([{"port": 18080, "protocols": ["tcp", "udp"], "allow": []}]));
+        let result = plan(
+            json!([]),
+            json!([{"port": 18080, "protocols": ["tcp", "udp"], "allow": []}]),
+        );
         assert_eq!(result["changes"][0]["transition"], "enabled_denied");
         assert_eq!(result["state_cleanup"].as_array().unwrap().len(), 2);
         assert_eq!(result["all_affected_sources_enumerated"], false);
@@ -155,11 +183,19 @@ mod tests {
     #[test]
     fn disabled_and_deleted_services_release_management() {
         let before = json!([{"port": 18080, "protocols": ["tcp"], "allow": []}]);
-        for after in [json!([]), json!([{"port": 18080, "protocols": ["tcp"], "allow": [], "enabled": false}])] {
+        for after in [
+            json!([]),
+            json!([{"port": 18080, "protocols": ["tcp"], "allow": [], "enabled": false}]),
+        ] {
             let result = plan(before.clone(), after);
             assert_eq!(result["changes"][0]["transition"], "released_unmanaged");
             assert_eq!(result["state_cleanup"], json!([]));
-            assert!(!result["after_anchor_rules"].as_str().unwrap().contains("port ="));
+            assert!(
+                !result["after_anchor_rules"]
+                    .as_str()
+                    .unwrap()
+                    .contains("port =")
+            );
         }
         // Disabled input must still pass backend validation.
         let invalid = serde_json::from_value::<Policy>(json!({"interface": "en0", "log_interface": "pflog7",
@@ -171,9 +207,20 @@ mod tests {
     fn ipv6_and_duplicate_endpoints_stay_exact() {
         let before = policy(json!([]));
         let after = policy(json!([{"port": 18080, "protocols": ["udp"], "allow": ["192.0.2.20"]}]));
-        let result = plan_update(&before, &after,
-            &["192.0.2.20".parse().unwrap(), "2001:db8::20".parse().unwrap(), "2001:db8::20".parse().unwrap()],
-            &["192.0.2.10".parse().unwrap(), "2001:db8::10".parse().unwrap()]).unwrap();
+        let result = plan_update(
+            &before,
+            &after,
+            &[
+                "192.0.2.20".parse().unwrap(),
+                "2001:db8::20".parse().unwrap(),
+                "2001:db8::20".parse().unwrap(),
+            ],
+            &[
+                "192.0.2.10".parse().unwrap(),
+                "2001:db8::10".parse().unwrap(),
+            ],
+        )
+        .unwrap();
         let cleanup = result["state_cleanup"].as_array().unwrap();
         assert_eq!(cleanup.len(), 1);
         assert_eq!(cleanup[0]["source"], "2001:db8::20");
@@ -184,10 +231,30 @@ mod tests {
     fn unsupported_scopes_fail_without_a_partial_plan() {
         let before = policy(json!([]));
         let mut after = policy(json!([]));
-        for (source, local) in [("::1", "192.0.2.10"), ("0.0.0.0", "192.0.2.10"), ("fe80::20", "fe80::10")] {
-            assert!(plan_update(&before, &after, &[source.parse().unwrap()], &[local.parse().unwrap()]).is_err());
+        for (source, local) in [
+            ("::1", "192.0.2.10"),
+            ("0.0.0.0", "192.0.2.10"),
+            ("fe80::20", "fe80::10"),
+        ] {
+            assert!(
+                plan_update(
+                    &before,
+                    &after,
+                    &[source.parse().unwrap()],
+                    &[local.parse().unwrap()]
+                )
+                .is_err()
+            );
         }
         after.interface = "en1".into();
-        assert!(plan_update(&before, &after, &["192.0.2.20".parse().unwrap()], &["192.0.2.10".parse().unwrap()]).is_err());
+        assert!(
+            plan_update(
+                &before,
+                &after,
+                &["192.0.2.20".parse().unwrap()],
+                &["192.0.2.10".parse().unwrap()]
+            )
+            .is_err()
+        );
     }
 }

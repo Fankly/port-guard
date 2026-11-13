@@ -5,22 +5,21 @@ import { cn } from '../../lib/utils'
 type SelectProps = ComponentProps<'select'>
 
 /**
- * Native select, styled to match the rest of the controls. Keeping the native
- * element preserves the platform picker on touch devices and removes a large
- * listbox dependency from the bundle.
+ * Native select, styled as a hard-edged control. Keeping the native element
+ * preserves the platform picker on touch devices.
  */
 export function Select({ className, children, ...props }: SelectProps) {
   return (
     <span className={cn('relative inline-flex', className)}>
       <select
-        className="h-9 w-full appearance-none rounded-[10px] border border-input bg-card pl-3 pr-8 text-[12.5px] text-foreground shadow-xs transition-[border-color,box-shadow] duration-150 hover:border-border-strong focus-visible:border-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/20 disabled:cursor-not-allowed disabled:opacity-50"
+        className="h-10 w-full appearance-none border-2 border-ink bg-paper py-2 pl-3 pr-9 font-mono text-[12px] text-ink transition-[background-color,box-shadow] duration-150 hover:bg-slab focus-visible:bg-paper focus-visible:shadow-[4px_4px_0_0_#000] focus-visible:outline-none disabled:cursor-not-allowed disabled:bg-slab disabled:text-ink"
         {...props}
       >
         {children}
       </select>
       <ChevronDown
-        className="pointer-events-none absolute right-2.5 top-1/2 size-3.5 -translate-y-1/2 text-muted-foreground"
-        strokeWidth={2}
+        className="pointer-events-none absolute right-2.5 top-1/2 size-4 -translate-y-1/2 text-ink"
+        strokeWidth={2.6}
         aria-hidden="true"
       />
     </span>

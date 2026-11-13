@@ -32,20 +32,20 @@ export function ConfirmDialog({
       }}
     >
       <AlertDialogContent>
-        <div className="flex gap-3.5">
-          <span className="grid size-10 shrink-0 place-items-center rounded-xl bg-destructive-soft text-destructive">
-            <TriangleAlert className="size-[19px]" />
+        <div className="flex gap-4">
+          <span className="grid size-12 shrink-0 place-items-center border-2 border-ink bg-hot-pink text-ink shadow-[4px_4px_0_0_#000]">
+            <TriangleAlert className="size-5" strokeWidth={2.6} />
           </span>
           <div className="min-w-0">
-            <AlertDialogTitle className="text-[15px] font-semibold tracking-[-0.01em]">
+            <AlertDialogTitle className="font-sans text-[26px] font-black leading-[0.95] tracking-[-0.02em]">
               {title}
             </AlertDialogTitle>
-            <AlertDialogDescription className="mt-1.5 text-[12px] leading-relaxed text-muted-foreground">
+            <AlertDialogDescription className="mt-3 font-mono text-[12px] leading-[1.65] text-ink">
               {description}
             </AlertDialogDescription>
           </div>
         </div>
-        <div className="mt-5 flex justify-end gap-2">
+        <div className="mt-6 flex flex-col-reverse gap-3 border-t-2 border-ink pt-4 sm:flex-row sm:justify-end">
           <AlertDialogCancel asChild>
             <Button variant="secondary">取消</Button>
           </AlertDialogCancel>

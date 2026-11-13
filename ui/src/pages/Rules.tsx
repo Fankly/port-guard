@@ -79,54 +79,45 @@ export default function Rules({ onNew, onEdit, onDelete, onToggle }: Props) {
   return (
     <div>
       <PageHeader
+        label="Rules / 规则"
         title="端口规则"
         description="每个规则管理一个本机端口，只有名单内的来源能够访问。未配置的端口不受影响。"
         actions={
           <Button onClick={onNew}>
-            <Plus className="size-4" />
+            <Plus className="size-4" strokeWidth={3} />
             新建规则
           </Button>
         }
       />
 
-      <Card className="mb-4 flex flex-wrap items-center gap-x-6 gap-y-3 px-4 py-3.5 sm:px-5">
-        <div className="flex items-center gap-3">
-          <span className="grid size-9 place-items-center rounded-lg bg-primary-soft text-primary">
-            <ShieldCheck className="size-[18px]" />
+      <Card className="mb-6 grid grid-cols-2 border-2 shadow-[8px_8px_0_0_#000] lg:grid-cols-[1.2fr_1fr_1fr_1fr]">
+        <div className="flex items-center gap-3 border-b-2 border-r-2 border-ink bg-acid-lime px-4 py-4 lg:border-b-0">
+          <span className="grid size-10 shrink-0 place-items-center border-2 border-ink bg-ink text-acid-lime">
+            <ShieldCheck className="size-5" strokeWidth={2.6} />
           </span>
           <div>
-            <div className="num text-[19px] font-semibold leading-none">
-              {active}{' '}
-              <span className="text-[11px] font-normal text-muted-foreground">
-                / {rules.length}
-              </span>
+            <div className="num font-sans text-[30px] font-black leading-[0.9]">
+              {active}
+              <span className="ml-1 font-mono text-[11px] font-bold">/ {rules.length}</span>
             </div>
-            <span className="mt-1 block text-[10px] text-muted-foreground">
+            <span className="mt-1 block font-mono text-[11px] font-bold uppercase tracking-[0.1em]">
               规则正在生效
             </span>
           </div>
         </div>
-
-        <span className="hidden h-8 w-px bg-border sm:block" aria-hidden="true" />
-
-        <Stat label="白名单来源" value={uniqueSources} />
-        <Stat label="TCP 规则" value={tcpCount} />
+        <Stat label="白名单来源" value={uniqueSources} className="border-b-2 border-ink lg:border-b-0 lg:border-r-2" />
+        <Stat label="TCP 规则" value={tcpCount} className="border-r-2 border-ink lg:border-r-2" />
         <Stat label="UDP 规则" value={udpCount} />
-
-        <p className="ml-auto hidden items-center gap-1.5 text-[10px] text-muted-foreground xl:flex">
-          <Globe2 className="size-3.5" />
-          IPv4 与 IPv6 来源都会被覆盖
-        </p>
       </Card>
 
-      <Card className="overflow-hidden">
-        <div className="flex flex-col gap-2.5 border-b border-border/70 p-3 sm:flex-row sm:items-center">
+      <Card>
+        <div className="flex flex-col gap-3 border-b-2 border-ink bg-slab p-3 sm:flex-row sm:items-center">
           <SearchField
             value={query}
             onChange={setQuery}
             placeholder="搜索名称、端口或来源 IP"
             label="搜索规则"
-            className="sm:max-w-[280px]"
+            className="sm:max-w-[300px]"
           />
           <div className="flex flex-wrap items-center gap-2 sm:ml-auto">
             <Segmented
@@ -144,73 +135,75 @@ export default function Rules({ onNew, onEdit, onDelete, onToggle }: Props) {
               size="sm"
               onClick={() => setAscending(current => !current)}
             >
-              <ArrowUpDown className="size-3.5" />
+              <ArrowUpDown className="size-3.5" strokeWidth={3} />
               端口{ascending ? '升序' : '降序'}
             </Button>
           </div>
         </div>
 
-        <div className="hidden grid-cols-[92px_minmax(0,1.2fr)_minmax(0,1fr)_auto] gap-4 border-b border-border/60 bg-muted/30 px-5 py-2 text-[9px] font-medium uppercase tracking-[0.12em] text-muted-foreground md:grid">
-          <span>端口 / 规则</span>
+        <div className="hidden grid-cols-[110px_minmax(0,1.2fr)_minmax(0,1fr)_auto] gap-4 border-b-2 border-ink bg-ink px-5 py-2.5 font-mono text-[11px] font-bold uppercase tracking-[0.14em] text-paper md:grid">
+          <span>端口 / 协议</span>
           <span>名称与更新</span>
           <span>允许来源</span>
           <span className="text-right">状态与操作</span>
         </div>
 
-        <div>
+        <div className="divide-y-2 divide-ink">
           {filtered.map(rule => (
             <article
               key={rule.id}
               className={cn(
-                'group grid grid-cols-[auto_minmax(0,1fr)_auto] items-start gap-x-3 gap-y-2 border-b border-border/60 px-4 py-3.5 transition-colors last:border-0 hover:bg-muted/35 md:grid-cols-[92px_minmax(0,1.2fr)_minmax(0,1fr)_auto] md:items-center md:gap-4 md:px-5',
-                !rule.enabled && 'bg-muted/20',
+                'rule-list-row group grid grid-cols-[auto_minmax(0,1fr)_auto] items-start gap-x-3 gap-y-3 bg-paper px-4 py-4 md:grid-cols-[110px_minmax(0,1.2fr)_minmax(0,1fr)_auto] md:items-center md:gap-4 md:px-5',
+                !rule.enabled && 'bg-slab',
               )}
             >
               <div className="md:col-auto">
-                <span className="num font-mono text-[17px] font-semibold leading-none">
-                  {rule.port}
-                </span>
-                <div className="mt-1 flex gap-1">
-                  {rule.protocols.map(protocol => (
-                    <ProtocolTag key={protocol} protocol={protocol} />
-                  ))}
+                <div className="inline-block border-2 border-ink bg-ink px-2.5 py-1.5 text-paper">
+                  <span className="num block font-sans text-[22px] font-black leading-[0.95] tracking-[-0.02em]">
+                    {rule.port}
+                  </span>
+                  <div className="mt-1 flex gap-1">
+                    {rule.protocols.map(protocol => (
+                      <ProtocolTag key={protocol} protocol={protocol} />
+                    ))}
+                  </div>
                 </div>
               </div>
 
               <div className="min-w-0">
                 <div className="flex flex-wrap items-center gap-2">
-                  <h2 className="truncate text-[13px] font-medium">
+                  <h2 className="truncate font-sans text-[18px] font-black leading-tight">
                     {rule.name}
                   </h2>
                   <StatePill enabled={rule.enabled} />
                 </div>
-                <p className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1 text-[10px] text-muted-foreground">
+                <p className="mt-1.5 flex flex-wrap items-center gap-x-2 gap-y-1 font-mono text-[11px]">
                   <span>更新于 {rule.updatedAt.slice(5, 16)}</span>
-                  <i className="h-2.5 w-px bg-border" aria-hidden="true" />
+                  <i className="h-2.5 w-0.5 bg-ink" aria-hidden="true" />
                   <span>{protocolLabel(rule.protocols)} · 入站</span>
-                  <i className="h-2.5 w-px bg-border" aria-hidden="true" />
+                  <i className="h-2.5 w-0.5 bg-ink" aria-hidden="true" />
                   <span>{rule.sources.length} 个来源</span>
                 </p>
               </div>
 
-              <div className="col-span-3 flex flex-wrap items-center gap-1 md:col-span-1">
+              <div className="col-span-3 flex flex-wrap items-center gap-1.5 md:col-span-1">
                 {rule.sources.slice(0, 2).map(source => (
                   <span
                     key={source.address}
-                    className="inline-flex max-w-[190px] items-center gap-1 rounded-md border border-border bg-muted/50 px-1.5 py-0.5 font-mono text-[10px] text-muted-foreground"
+                    className="inline-flex max-w-[190px] items-center gap-1 border-2 border-ink bg-paper px-1.5 py-0.5 font-mono text-[11px] font-bold"
                     title={`${source.label} · ${source.address}`}
                   >
                     {source.address.includes('/') ? (
-                      <Globe2 className="size-2.5 shrink-0" />
+                      <Globe2 className="size-3 shrink-0" strokeWidth={2.4} />
                     ) : (
-                      <Monitor className="size-2.5 shrink-0" />
+                      <Monitor className="size-3 shrink-0" strokeWidth={2.4} />
                     )}
                     <span className="truncate">{source.address}</span>
                   </span>
                 ))}
                 {rule.sources.length > 2 && (
                   <span
-                    className="rounded-md border border-border bg-muted/50 px-1.5 py-0.5 font-mono text-[10px] text-muted-foreground"
+                    className="border-2 border-ink bg-slab px-1.5 py-0.5 font-mono text-[11px] font-bold"
                     title={rule.sources
                       .slice(2)
                       .map(source => source.address)
@@ -220,15 +213,15 @@ export default function Rules({ onNew, onEdit, onDelete, onToggle }: Props) {
                   </span>
                 )}
                 {rule.sources.length === 0 && (
-                  <span className="inline-flex items-center gap-1 rounded-md border border-[#f0dfbb] bg-warning-soft/70 px-1.5 py-0.5 text-[10px] text-warning">
-                    <Ban className="size-3" />
+                  <span className="inline-flex items-center gap-1 border-2 border-ink bg-tangerine px-1.5 py-0.5 font-mono text-[11px] font-bold">
+                    <Ban className="size-3" strokeWidth={3} />
                     拒绝所有来源
                   </span>
                 )}
               </div>
 
               <div className="col-start-3 row-start-1 flex items-center gap-1 md:col-auto md:row-auto">
-                <span className="mr-1 hidden text-[10px] text-muted-foreground lg:inline">
+                <span className="mr-1 hidden font-mono text-[11px] font-bold uppercase lg:inline">
                   {rule.enabled ? '已启用' : '已停用'}
                 </span>
                 <Switch
@@ -236,17 +229,16 @@ export default function Rules({ onNew, onEdit, onDelete, onToggle }: Props) {
                   onCheckedChange={() => onToggle(rule)}
                   aria-label={`${rule.enabled ? '停用' : '启用'} ${rule.name}`}
                 />
-                <div className="ml-1 flex items-center gap-0.5 border-l border-border pl-1.5">
+                <div className="ml-1 flex items-center gap-1 border-l-2 border-ink pl-2">
                   <Tooltip>
                     <TooltipTrigger asChild>
                       <Button
                         variant="ghost"
                         size="icon-sm"
-                        className="size-8 text-muted-foreground hover:text-foreground md:size-7"
                         onClick={() => onEdit(rule)}
                         aria-label={`编辑 ${rule.name}`}
                       >
-                        <Pencil className="size-3.5" />
+                        <Pencil className="size-3.5" strokeWidth={2.6} />
                       </Button>
                     </TooltipTrigger>
                     <TooltipContent>编辑规则</TooltipContent>
@@ -256,11 +248,11 @@ export default function Rules({ onNew, onEdit, onDelete, onToggle }: Props) {
                       <Button
                         variant="ghost"
                         size="icon-sm"
-                        className="size-8 text-muted-foreground hover:bg-destructive-soft hover:text-destructive md:size-7"
+                        className="hover:border-ink hover:bg-hot-pink hover:text-ink"
                         onClick={() => onDelete(rule)}
                         aria-label={`删除 ${rule.name}`}
                       >
-                        <Trash2 className="size-3.5" />
+                        <Trash2 className="size-3.5" strokeWidth={2.6} />
                       </Button>
                     </TooltipTrigger>
                     <TooltipContent>删除规则</TooltipContent>
@@ -275,14 +267,12 @@ export default function Rules({ onNew, onEdit, onDelete, onToggle }: Props) {
           <EmptyState
             icon={
               hasFilters ? (
-                <Search className="size-5" />
+                <Search className="size-6" strokeWidth={2.4} />
               ) : (
-                <Network className="size-5" />
+                <Network className="size-6" strokeWidth={2.4} />
               )
             }
-            title={
-              rules.length === 0 ? '还没有端口规则' : '没有匹配的规则'
-            }
+            title={rules.length === 0 ? '还没有端口规则' : '没有匹配的规则'}
             description={
               rules.length === 0
                 ? '创建第一条规则，开始管理本机端口。'
@@ -298,12 +288,12 @@ export default function Rules({ onNew, onEdit, onDelete, onToggle }: Props) {
                     setFilter('all')
                   }}
                 >
-                  <CircleCheck className="size-3.5" />
+                  <CircleCheck className="size-3.5" strokeWidth={3} />
                   清除筛选
                 </Button>
               ) : (
                 <Button variant="secondary" size="sm" onClick={onNew}>
-                  <Plus className="size-3.5" />
+                  <Plus className="size-3.5" strokeWidth={3} />
                   新建规则
                 </Button>
               )
@@ -311,23 +301,21 @@ export default function Rules({ onNew, onEdit, onDelete, onToggle }: Props) {
           />
         )}
 
-        <footer className="flex flex-wrap items-center justify-between gap-2 border-t border-border/70 px-4 py-3 text-[10.5px] text-muted-foreground sm:px-5">
-          <span className="flex items-center gap-1.5">
-            <ShieldCheck className="size-3.5 shrink-0" />
+        <footer className="flex flex-wrap items-center justify-between gap-2 border-t-2 border-ink bg-slab px-4 py-3 font-mono text-[11px] sm:px-5">
+          <span className="flex items-center gap-1.5 font-bold">
+            <ShieldCheck className="size-3.5 shrink-0" strokeWidth={2.6} />
             停用或删除只撤除本软件的规则，对应端口回到系统原有策略。
           </span>
-          <span className="font-mono text-[10px]">
+          <span className="border border-ink bg-paper px-1.5 py-px font-bold">
             {filtered.length} / {rules.length} 条规则
           </span>
         </footer>
       </Card>
 
-      <div className="mt-3 flex gap-2.5 rounded-xl border border-border/70 bg-card/60 px-3.5 py-3 text-[10.5px] leading-relaxed text-muted-foreground">
-        <Network className="mt-0.5 size-3.5 shrink-0" />
-        <p>
-          <strong className="font-medium text-foreground">
-            规则之间取并集。
-          </strong>
+      <div className="mt-6 flex gap-3 border-2 border-ink bg-paper px-4 py-3.5 shadow-[4px_4px_0_0_#000]">
+        <Network className="mt-0.5 size-4 shrink-0" strokeWidth={2.6} />
+        <p className="font-mono text-[12px] leading-[1.7]">
+          <strong className="font-bold">规则之间取并集。</strong>
           同一个 IP 命中任意一条来源就属于白名单；删除单独条目后，若仍被某个
           CIDR 网段覆盖，它依然可以访问。
         </p>
@@ -336,11 +324,21 @@ export default function Rules({ onNew, onEdit, onDelete, onToggle }: Props) {
   )
 }
 
-function Stat({ label, value }: { label: string; value: number }) {
+function Stat({
+  label,
+  value,
+  className,
+}: {
+  label: string
+  value: number
+  className?: string
+}) {
   return (
-    <div>
-      <div className="num text-[16px] font-semibold leading-none">{value}</div>
-      <span className="mt-1 block text-[10px] text-muted-foreground">
+    <div className={cn('px-4 py-4', className)}>
+      <div className="num font-sans text-[30px] font-black leading-[0.9]">
+        {value}
+      </div>
+      <span className="mt-1.5 block font-mono text-[11px] font-bold uppercase tracking-[0.1em]">
         {label}
       </span>
     </div>

@@ -1,10 +1,11 @@
 use anyhow::{Context, Result, ensure};
 use clap::{Parser, Subcommand};
-use pf_probe::{
-    native::KillTarget,
-    policy::{Policy, parse_protocol},
-};
-use std::{fs, io::Write, net::IpAddr, path::PathBuf, process::Command};
+use pf_probe::policy::Policy;
+#[cfg(target_os = "macos")]
+use pf_probe::{native::KillTarget, policy::parse_protocol};
+#[cfg(target_os = "macos")]
+use std::process::Command;
+use std::{fs, io::Write, net::IpAddr, path::PathBuf};
 
 #[derive(Parser)]
 #[command(
@@ -83,14 +84,26 @@ fn policy(path: &PathBuf) -> Result<pf_probe::policy::CompiledPolicy> {
         .context("无法读取策略 JSON")?
         .compile()
 }
+#[cfg(target_os = "macos")]
 fn command_text(program: &str, args: &[&str]) -> String {
     match Command::new(program).args(args).output() {
         Ok(o) => String::from_utf8_lossy(&o.stdout).trim().to_owned(),
         Err(e) => e.to_string(),
     }
 }
+/// macOS-only subcommands stay visible on every platform so `--help` is stable,
+/// but other targets fail with an explicit message instead of half-running a
+/// command whose parser (`pfctl`) and device (`/dev/pf`) do not exist.
+#[cfg(not(target_os = "macos"))]
+fn macos_only(command: &str) -> Result<()> {
+    anyhow::bail!(
+        "`{command}` 依赖 macOS 的 PF/pflog，本平台（{}）不可用；可用命令：render、decode",
+        std::env::consts::OS
+    )
+}
 fn run() -> Result<()> {
     match Cli::parse().command {
+        #[cfg(target_os = "macos")]
         Action::Doctor => {
             let read = pf_probe::native::device_read_check();
             let root_config = fs::read_to_string("/etc/pf.conf").unwrap_or_default();
@@ -107,6 +120,8 @@ fn run() -> Result<()> {
                 )?
             );
         }
+        #[cfg(not(target_os = "macos"))]
+        Action::Doctor => macos_only("doctor")?,
         Action::Render { policy: path, out } => {
             let compiled = policy(&path)?;
             if let Some(path) = out {
@@ -121,6 +136,7 @@ fn run() -> Result<()> {
                 print!("{}", compiled.render());
             }
         }
+        #[cfg(target_os = "macos")]
         Action::Check { policy: path } => {
             let mut file = tempfile::NamedTempFile::new()?;
             file.write_all(policy(&path)?.render().as_bytes())?;
@@ -134,10 +150,26 @@ fn run() -> Result<()> {
             println!("{}", serde_json::to_string_pretty(&report)?);
             ensure!(output.status.success(), "pfctl syntax check did not pass");
         }
-        Action::PlanUpdate { before, after, source, local } => {
-            let report = pf_probe::update::plan_update(&policy(&before)?, &policy(&after)?, &source, &local)?;
+        #[cfg(not(target_os = "macos"))]
+        Action::Check { .. } => macos_only("check")?,
+        #[cfg(target_os = "macos")]
+        Action::PlanUpdate {
+            before,
+            after,
+            source,
+            local,
+        } => {
+            let report = pf_probe::update::plan_update(
+                &policy(&before)?,
+                &policy(&after)?,
+                &source,
+                &local,
+            )?;
             println!("{}", serde_json::to_string_pretty(&report)?);
         }
+        #[cfg(not(target_os = "macos"))]
+        Action::PlanUpdate { .. } => macos_only("plan-update")?,
+        #[cfg(target_os = "macos")]
         Action::Kill {
             source,
             local,
@@ -178,6 +210,8 @@ fn run() -> Result<()> {
                 );
             }
         }
+        #[cfg(not(target_os = "macos"))]
+        Action::Kill { .. } => macos_only("kill")?,
         Action::Decode { pcap } => {
             ensure!(
                 fs::metadata(&pcap)?.len() <= 64 * 1024 * 1024,

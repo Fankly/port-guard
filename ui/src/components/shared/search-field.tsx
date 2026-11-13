@@ -15,10 +15,10 @@ export function SearchField({
   className?: string
 }) {
   return (
-    <div className={cn('relative w-full sm:max-w-[300px]', className)}>
+    <div className={cn('relative w-full sm:max-w-[320px]', className)}>
       <Search
-        className="pointer-events-none absolute left-3 top-1/2 size-3.5 -translate-y-1/2 text-muted-foreground"
-        strokeWidth={2}
+        className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-ink"
+        strokeWidth={2.6}
         aria-hidden="true"
       />
       <input
@@ -26,16 +26,16 @@ export function SearchField({
         onChange={event => onChange(event.target.value)}
         placeholder={placeholder}
         aria-label={label}
-        className="h-9 w-full rounded-[10px] border border-input bg-card pl-9 pr-8 text-[12.5px] shadow-xs transition-[border-color,box-shadow] duration-150 placeholder:text-muted-foreground/65 hover:border-border-strong focus-visible:border-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/20"
+        className="h-10 w-full border-2 border-ink bg-paper pl-10 pr-9 font-mono text-[12px] text-ink transition-[background-color,box-shadow] duration-150 placeholder:text-[12px] placeholder:text-ink hover:bg-slab focus-visible:bg-paper focus-visible:shadow-[4px_4px_0_0_#000] focus-visible:outline-none"
       />
       {value && (
         <button
           type="button"
           onClick={() => onChange('')}
           aria-label="清空搜索"
-          className="absolute right-2 top-1/2 grid size-5 -translate-y-1/2 place-items-center rounded text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+          className="absolute right-2 top-1/2 grid size-6 -translate-y-1/2 place-items-center border-2 border-ink bg-paper text-ink transition-colors duration-150 hover:bg-hot-pink hover:text-ink"
         >
-          <X className="size-3" />
+          <X className="size-3" strokeWidth={3} />
         </button>
       )}
     </div>

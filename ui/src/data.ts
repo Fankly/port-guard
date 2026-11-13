@@ -1,4 +1,5 @@
 import ipaddr from 'ipaddr.js'
+import { detectPlatform } from './lib/platform'
 
 export type Protocol = 'tcp' | 'udp'
 export type Source = { address: string; label: string }
@@ -99,9 +100,18 @@ export const demoOperations: Operation[] = [
   { id: 'o5', time: '2026-11-11 14:05:00', action: '创建端口规则', detail: '本地 DNS 服务 · TCP + UDP · 2 个来源地址', port: 53, result: '成功' },
 ]
 
+/** First-run demo values follow the host platform instead of assuming macOS. */
+const platform = detectPlatform()
+const networkDefaults =
+  platform === 'windows'
+    ? { interface: '以太网', logInterface: 'WFP Net Events' }
+    : platform === 'macos'
+      ? { interface: 'en0', logInterface: 'pflog7' }
+      : { interface: '默认接口', logInterface: '系统日志' }
+
 export const defaultPreferences: Preferences = {
-  interface: 'en0',
-  logInterface: 'pflog7',
+  interface: networkDefaults.interface,
+  logInterface: networkDefaults.logInterface,
   retention: '7',
   launchAtLogin: true,
   notifyBlocked: false,

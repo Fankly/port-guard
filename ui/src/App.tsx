@@ -8,10 +8,12 @@ import { saveDesktopState, resetDesktopState } from './bridge'
 import { useBootstrap } from './hooks/use-bootstrap'
 import { useReturnFocus } from './hooks/use-return-focus'
 import { useRoute } from './hooks/use-route'
+import { detectPlatform } from './lib/platform'
 import { useAppStore } from './store/app-store'
 import { Sidebar } from './components/layout/sidebar'
 import { MobileNav } from './components/layout/mobile-nav'
 import { MobileHeader } from './components/layout/mobile-header'
+import { MarqueeBar } from './components/layout/marquee-bar'
 import { AppSkeleton } from './components/layout/app-skeleton'
 import { RuleSheet } from './components/rules/rule-sheet'
 import { ConfirmDialog } from './components/feedback/confirm-dialog'
@@ -28,6 +30,7 @@ type SheetState = { mode: 'create' | 'edit'; rule: Rule | null }
 export default function App() {
   const { page, navigate } = useRoute()
   const { desktop, status, info, retry, retrying } = useBootstrap()
+  const platform = detectPlatform(info?.platform)
   const reduceMotion = useReducedMotion()
   const dialogFocus = useReturnFocus()
 
@@ -117,7 +120,7 @@ export default function App() {
     <TooltipProvider delayDuration={260}>
       <a
         href="#main"
-        className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[80] focus:rounded-lg focus:bg-card focus:px-3 focus:py-2 focus:text-[12px] focus:shadow-lift"
+        className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[80] focus:border-2 focus:border-ink focus:bg-acid-lime focus:px-4 focus:py-2 focus:font-mono focus:text-[12px] focus:font-bold focus:shadow-[4px_4px_0_0_#000]"
       >
         跳到主要内容
       </a>
@@ -129,32 +132,35 @@ export default function App() {
           blockedCount={blockedEvents}
           desktop={desktop}
           storageError={status === 'error'}
+          platform={platform}
           onNavigate={navigate}
         />
 
-        <div className="lg:pl-[240px]">
+        <div className="lg:pl-[260px]">
           <MobileHeader
             desktop={desktop}
             activeCount={activeCount}
             storageError={status === 'error'}
           />
 
+          <MarqueeBar platform={platform} />
+
           <main
             id="main"
             tabIndex={-1}
-            className="mx-auto outline-none w-full max-w-[1180px] px-4 pb-28 pt-5 sm:px-6 lg:px-9 lg:pb-14 lg:pt-8"
+            className="mx-auto w-full max-w-[1280px] px-4 pb-28 pt-6 outline-none sm:px-6 lg:px-8 lg:pb-16 lg:pt-8"
           >
             {desktop && status === 'error' && (
               <div
                 role="alert"
-                className="mb-4 flex flex-col gap-2.5 rounded-xl border border-[#f0dfbb] bg-warning-soft/70 p-3.5 sm:flex-row sm:items-center"
+                className="mb-6 flex flex-col gap-3 border-2 border-ink bg-tangerine p-4 shadow-[4px_4px_0_0_#000] sm:flex-row sm:items-center"
               >
-                <AlertTriangle className="size-4 shrink-0 text-warning" />
+                <AlertTriangle className="size-5 shrink-0" strokeWidth={2.6} />
                 <div className="min-w-0 flex-1">
-                  <strong className="block text-[11.5px] font-medium">
+                  <strong className="block font-mono text-[11px] font-bold uppercase tracking-[0.12em]">
                     无法读取本机 SQLite
                   </strong>
-                  <p className="mt-0.5 text-[10.5px] leading-relaxed text-muted-foreground">
+                  <p className="mt-1 font-mono text-[11px] leading-[1.6]">
                     当前显示本地演示数据，修改不会写入本机存储。重试成功后会自动恢复。
                   </p>
                 </div>
@@ -178,17 +184,14 @@ export default function App() {
               <AnimatePresence mode="wait" initial={false}>
                 <motion.div
                   key={page}
-                  initial={reduceMotion ? false : { opacity: 0, y: 7 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={
-                    reduceMotion
-                      ? undefined
-                      : { opacity: 0, y: -4 }
-                  }
-                  transition={{ duration: 0.18, ease: [0.22, 0.8, 0.28, 1] }}
+                  initial={reduceMotion ? false : { x: 18 }}
+                  animate={{ x: 0 }}
+                  exit={reduceMotion ? undefined : { x: -10 }}
+                  transition={{ duration: 0.16, ease: [0.22, 0.8, 0.28, 1] }}
                 >
                   {page === 'overview' && (
                     <Overview
+                      platform={platform}
                       onNavigate={navigate}
                       onNewRule={() => {
                         dialogFocus.capture()
@@ -214,7 +217,7 @@ export default function App() {
                       onToggle={handleToggle}
                     />
                   )}
-                  {page === 'access' && <AccessLog />}
+                  {page === 'access' && <AccessLog platform={platform} />}
                   {page === 'operations' && <Operations />}
                   {page === 'settings' && (
                     <Settings
@@ -266,8 +269,8 @@ export default function App() {
 
         <Toaster
           position="bottom-right"
-          offset={20}
-          mobileOffset={{ bottom: 82, left: 16, right: 16 }}
+          offset={24}
+          mobileOffset={{ bottom: 96, left: 16, right: 16 }}
           toastOptions={{ duration: 2800 }}
           theme="light"
         />

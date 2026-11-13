@@ -1,0 +1,90 @@
+name: windows
+
+on:
+  push:
+    branches: [master, main]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  # Every push/PR compiles and tests the Windows target so platform-specific
+  # regressions (e.g. macOS-only imports in the CLI) fail fast.
+  verify:
+    runs-on: windows-latest
+    timeout-minutes: 30
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: |
+            package-lock.json
+            ui/package-lock.json
+
+      - uses: dtolnay/rust-toolchain@stable
+
+      - name: Install dependencies
+        shell: pwsh
+        run: |
+          npm ci
+          npm --prefix ui ci
+
+      - name: Build front-end
+        shell: pwsh
+        run: npm --prefix ui run build
+
+      - name: Rust tests
+        shell: pwsh
+        run: cargo test --workspace
+
+  # The preview installer is only built on demand; it still contains the UI and
+  # SQLite shell only, with no WFP execution layer.
+  bundle:
+    if: github.event_name == 'workflow_dispatch'
+    needs: verify
+    runs-on: windows-latest
+    timeout-minutes: 45
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: |
+            package-lock.json
+            ui/package-lock.json
+
+      - uses: dtolnay/rust-toolchain@stable
+
+      - name: Install dependencies
+        shell: pwsh
+        run: |
+          npm ci
+          npm --prefix ui ci
+
+      - name: Build Windows installer
+        shell: pwsh
+        run: npx --no-install tauri build --bundles nsis
+
+      - name: Show build output
+        if: always()
+        shell: pwsh
+        run: |
+          Get-ChildItem -Recurse target\release\bundle -ErrorAction SilentlyContinue |
+            Select-Object FullName, Length
+          Get-ChildItem target\release\*.exe -ErrorAction SilentlyContinue |
+            Select-Object FullName, Length
+
+      - name: Upload Windows artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: port-guard-windows-preview
+          path: |
+            target/release/bundle/nsis/*.exe
+            target/release/port-guard-desktop.exe
+          if-no-files-found: error

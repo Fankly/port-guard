@@ -3,21 +3,19 @@ import { Skeleton } from '../ui/skeleton'
 export function AppSkeleton() {
   return (
     <div aria-busy="true" aria-label="正在载入本机数据">
-      <div className="mb-6 flex flex-col gap-3.5 sm:flex-row sm:items-end sm:justify-between">
-        <div className="space-y-2">
-          <Skeleton className="h-7 w-56" />
-          <Skeleton className="h-4 w-80 max-w-full" />
-        </div>
-        <Skeleton className="h-9 w-28" />
+      <div className="mb-8 border-b-2 border-ink pb-5">
+        <Skeleton className="h-3 w-36" />
+        <Skeleton className="mt-4 h-12 w-[min(620px,90%)]" />
+        <Skeleton className="mt-3 h-4 w-[min(520px,80%)]" />
       </div>
 
-      <Skeleton className="h-[218px] rounded-2xl" />
+      <Skeleton className="h-[250px]" />
 
-      <div className="mt-4 grid gap-4 lg:grid-cols-12">
-        <Skeleton className="h-[320px] rounded-xl lg:col-span-7" />
-        <Skeleton className="h-[320px] rounded-xl lg:col-span-5" />
-        <Skeleton className="h-[240px] rounded-xl lg:col-span-7" />
-        <Skeleton className="h-[240px] rounded-xl lg:col-span-5" />
+      <div className="mt-6 grid gap-6 lg:grid-cols-12">
+        <Skeleton className="h-[340px] lg:col-span-7" />
+        <Skeleton className="h-[340px] lg:col-span-5" />
+        <Skeleton className="h-[250px] lg:col-span-7" />
+        <Skeleton className="h-[250px] lg:col-span-5" />
       </div>
     </div>
   )

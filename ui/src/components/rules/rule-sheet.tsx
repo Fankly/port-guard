@@ -9,7 +9,7 @@ import {
   X,
 } from 'lucide-react'
 import { useRef, useState } from 'react'
-import type { FormEvent } from 'react'
+import type { FormEvent, ReactNode } from 'react'
 import type { Protocol, Rule, Source } from '../../data'
 import {
   createId,
@@ -164,15 +164,16 @@ export function RuleSheet({ mode, rule, rules, onClose, onSave }: Props) {
           nameRef.current?.focus()
         }}
       >
-        <header className="flex items-start justify-between gap-4 border-b border-border px-5 py-5 sm:px-6">
+        <header className="flex items-start justify-between gap-4 border-b-4 border-ink px-5 py-5 sm:px-6">
           <div className="min-w-0">
-            <span className="font-mono text-[9.5px] uppercase tracking-[0.16em] text-primary">
+            <span className="inline-flex items-center gap-2 border-2 border-ink bg-hot-pink px-2 py-0.5 font-mono text-[11px] font-bold uppercase tracking-[0.16em] text-ink">
+              <span className="size-1.5 bg-paper" aria-hidden="true" />
               {mode === 'create' ? 'New port rule' : `Port ${rule?.port}`}
             </span>
-            <SheetTitle className="mt-1 text-[20px] font-semibold tracking-[-0.02em]">
+            <SheetTitle className="mt-3 font-sans text-[32px] font-black leading-[0.95] tracking-[-0.02em]">
               {mode === 'create' ? '新建端口规则' : '编辑端口规则'}
             </SheetTitle>
-            <SheetDescription className="mt-1 text-[12px] text-muted-foreground">
+            <SheetDescription className="mt-2 font-mono text-[12px] leading-[1.6]">
               只允许名单内的来源访问这个本机端口。
             </SheetDescription>
           </div>
@@ -181,9 +182,9 @@ export function RuleSheet({ mode, rule, rules, onClose, onSave }: Props) {
             size="icon"
             onClick={onClose}
             aria-label="关闭"
-            className="-mr-1.5 -mt-1 shrink-0"
+            className="-mr-1 -mt-1 shrink-0"
           >
-            <X className="size-4" />
+            <X className="size-5" strokeWidth={3} />
           </Button>
         </header>
 
@@ -195,13 +196,8 @@ export function RuleSheet({ mode, rule, rules, onClose, onSave }: Props) {
           }}
         >
           <div className="flex-1 space-y-6 overflow-y-auto px-5 py-5 sm:px-6">
-            <div className="space-y-1.5">
-              <label
-                htmlFor="rule-name"
-                className="text-[12px] font-medium text-foreground"
-              >
-                规则名称
-              </label>
+            <div className="space-y-2">
+              <FieldLabel htmlFor="rule-name">01 / 规则名称</FieldLabel>
               <Input
                 id="rule-name"
                 ref={nameRef}
@@ -213,30 +209,23 @@ export function RuleSheet({ mode, rule, rules, onClose, onSave }: Props) {
                 placeholder="例如：办公 Web 服务"
                 maxLength={40}
               />
-              <p className="text-[10.5px] text-muted-foreground">
+              <p className="font-mono text-[12px] leading-[1.5]">
                 用一句方便识别的话命名，例如服务名或项目名。
               </p>
             </div>
 
-            <div className="grid gap-4 sm:grid-cols-2">
-              <div className="space-y-1.5">
-                <label
-                  htmlFor="rule-port"
-                  className="text-[12px] font-medium text-foreground"
-                >
-                  本机端口
-                </label>
+            <div className="grid gap-5 sm:grid-cols-2">
+              <div className="space-y-2">
+                <FieldLabel htmlFor="rule-port">02 / 本机端口</FieldLabel>
                 <div
                   className={cn(
-                    'flex h-10 items-center rounded-[10px] border bg-card pl-3 shadow-xs transition-[border-color,box-shadow]',
+                    'flex h-11 items-center border-2 bg-paper pl-3 transition-[background-color,box-shadow] duration-150',
                     port && !portValid
-                      ? 'border-destructive/55 ring-2 ring-destructive/10'
-                      : 'border-input focus-within:border-primary focus-within:ring-2 focus-within:ring-primary/20',
+                      ? 'border-hot-pink shadow-[4px_4px_0_0_#ff006e]'
+                      : 'border-ink focus-within:shadow-[4px_4px_0_0_#000]',
                   )}
                 >
-                  <span className="font-mono text-[12px] text-muted-foreground">
-                    :
-                  </span>
+                  <span className="font-mono text-[14px] font-bold">:</span>
                   <input
                     id="rule-port"
                     value={port}
@@ -249,19 +238,19 @@ export function RuleSheet({ mode, rule, rules, onClose, onSave }: Props) {
                     inputMode="numeric"
                     placeholder="8080"
                     aria-invalid={Boolean(port && !portValid)}
-                    className="h-full w-full rounded-[10px] bg-transparent px-1.5 font-mono text-[14px] tracking-wide outline-none placeholder:text-muted-foreground/50"
+                    className="h-full w-full bg-transparent px-1.5 font-mono text-[16px] font-bold tracking-[0.04em] outline-none placeholder:text-[13px] placeholder:text-ink"
                   />
                 </div>
-                <p className="text-[10.5px] text-muted-foreground">
+                <p className="font-mono text-[12px] leading-[1.5]">
                   1–65535，按端口号生效。
                 </p>
               </div>
 
-              <div className="space-y-1.5">
-                <span className="block text-[12px] font-medium text-foreground">
-                  协议
+              <div className="space-y-2">
+                <span className="block font-mono text-[12px] font-bold uppercase tracking-[0.14em]">
+                  03 / 协议
                 </span>
-                <div className="flex gap-1.5" role="group" aria-label="协议">
+                <div className="flex gap-2" role="group" aria-label="协议">
                   {(['tcp', 'udp'] as const).map(protocol => {
                     const active = protocols.includes(protocol)
                     return (
@@ -271,22 +260,20 @@ export function RuleSheet({ mode, rule, rules, onClose, onSave }: Props) {
                         onClick={() => toggleProtocol(protocol)}
                         aria-pressed={active}
                         className={cn(
-                          'flex h-10 flex-1 items-center gap-2 rounded-[10px] border px-3 font-mono text-[11px] transition-[border-color,background-color,color] duration-150',
+                          'flex h-11 flex-1 items-center gap-2 border-2 border-ink px-3 font-mono text-[11px] font-bold uppercase tracking-[0.1em] transition-all duration-150',
                           active
-                            ? 'border-primary/30 bg-primary-soft/70 text-accent-foreground'
-                            : 'border-input bg-card text-muted-foreground hover:border-border-strong',
+                            ? 'bg-acid-lime text-ink shadow-[3px_3px_0_0_#000]'
+                            : 'bg-paper text-ink hover:bg-slab',
                         )}
                       >
                         <span
                           className={cn(
-                            'grid size-4 place-items-center rounded-[5px] border transition-colors',
-                            active
-                              ? 'border-primary bg-primary text-white'
-                              : 'border-border-strong bg-card',
+                            'grid size-4 place-items-center border-2 border-ink transition-colors',
+                            active ? 'bg-ink text-acid-lime' : 'bg-paper',
                           )}
                         >
                           {active && (
-                            <Check className="size-2.5" strokeWidth={3.2} />
+                            <Check className="size-2.5" strokeWidth={3.5} />
                           )}
                         </span>
                         {protocol.toUpperCase()}
@@ -294,7 +281,7 @@ export function RuleSheet({ mode, rule, rules, onClose, onSave }: Props) {
                     )
                   })}
                 </div>
-                <p className="text-[10.5px] text-muted-foreground">
+                <p className="font-mono text-[12px] leading-[1.5]">
                   可同时管理 TCP 和 UDP，至少保留一种。
                 </p>
               </div>
@@ -302,11 +289,11 @@ export function RuleSheet({ mode, rule, rules, onClose, onSave }: Props) {
 
             {overlapping && (
               <div
-                className="flex gap-2.5 rounded-[10px] border border-[#f0d5cf] bg-destructive-soft/80 p-3 text-[11.5px] leading-relaxed text-[#8f332a]"
+                className="flex gap-3 border-2 border-ink bg-hot-pink p-3.5 text-ink shadow-[4px_4px_0_0_#000]"
                 role="alert"
               >
-                <AlertTriangle className="mt-0.5 size-4 shrink-0" />
-                <span>
+                <AlertTriangle className="mt-0.5 size-4 shrink-0" strokeWidth={2.6} />
+                <span className="font-mono text-[11px] leading-[1.6]">
                   端口 {portNumber} 的 {protocolLabel(protocols)} 已被「
                   {overlapping.name}」管理，同一端口/协议不能重复配置。
                 </span>
@@ -314,65 +301,65 @@ export function RuleSheet({ mode, rule, rules, onClose, onSave }: Props) {
             )}
 
             {rule?.enabled && removedSources.length > 0 && (
-              <div className="flex gap-2.5 rounded-[10px] border border-[#f0dfbb] bg-warning-soft/80 p-3 text-[11.5px] leading-relaxed text-[#7a5316]">
-                <AlertTriangle className="mt-0.5 size-4 shrink-0" />
-                <span>
+              <div className="flex gap-3 border-2 border-ink bg-tangerine p-3.5 text-ink shadow-[4px_4px_0_0_#000]">
+                <AlertTriangle className="mt-0.5 size-4 shrink-0" strokeWidth={2.6} />
+                <span className="font-mono text-[11px] leading-[1.6]">
                   保存后，{removedSources.length} 个来源将失去对端口 {rule.port}{' '}
                   的访问权限；已建立的连接也会在规则生效时被撤销。
                 </span>
               </div>
             )}
 
-            <section className="rounded-xl border border-border bg-muted/30">
-              <div className="flex items-start justify-between gap-3 px-3.5 pb-2 pt-3.5">
+            <section className="border-2 border-ink">
+              <div className="flex items-start justify-between gap-3 border-b-2 border-ink bg-slab px-3.5 py-3">
                 <div>
-                  <span className="text-[12px] font-medium text-foreground">
+                  <span className="font-sans text-[15px] font-black">
                     允许访问的来源
                   </span>
-                  <span className="ml-2 font-mono text-[10px] text-muted-foreground">
+                  <span className="ml-2 border border-ink bg-paper px-1.5 py-px font-mono text-[11px] font-bold">
                     {sources.length} 个地址
                   </span>
                 </div>
-                <span className="text-right text-[10px] leading-relaxed text-muted-foreground">
+                <span className="text-right font-mono text-[11px] leading-[1.5]">
                   多个条目取并集
                 </span>
               </div>
 
-              <div className="space-y-1.5 px-3.5">
+              <div className="space-y-2 p-3.5">
                 {sources.map(source => (
                   <div
                     key={source.address}
-                    className="flex items-center gap-2.5 rounded-lg border border-border/80 bg-card px-2.5 py-2"
+                    className="flex items-center gap-3 border-2 border-ink bg-paper px-2.5 py-2 transition-colors duration-150 hover:bg-slab"
                   >
                     <span
                       className={cn(
-                        'grid size-7 shrink-0 place-items-center rounded-md',
+                        'grid size-8 shrink-0 place-items-center border-2 border-ink',
                         isCidr(source.address)
-                          ? 'bg-[#eef4f9] text-[#4c6c85]'
-                          : 'bg-muted text-muted-foreground',
+                          ? 'bg-electric-cyan text-ink'
+                          : 'bg-acid-lime text-ink',
                       )}
                     >
                       {isCidr(source.address) ? (
-                        <Globe2 className="size-3.5" />
+                        <Globe2 className="size-4" strokeWidth={2.4} />
                       ) : (
-                        <Monitor className="size-3.5" />
+                        <Monitor className="size-4" strokeWidth={2.4} />
                       )}
                     </span>
                     <div className="min-w-0 flex-1">
-                      <strong className="block truncate text-[11.5px] font-medium">
+                      <strong className="block truncate font-mono text-[11px] font-bold">
                         {source.label}
                       </strong>
-                      <code className="block truncate font-mono text-[10.5px] text-muted-foreground">
+                      <code className="block truncate font-mono text-[12px]">
                         {source.address}
                       </code>
                     </div>
-                    <span className="hidden rounded border border-border bg-muted/50 px-1 py-px text-[9px] text-muted-foreground sm:inline">
+                    <span className="hidden border border-ink bg-paper px-1 py-px font-mono text-[12px] font-bold uppercase tracking-[0.08em] sm:inline">
                       {isCidr(source.address) ? 'CIDR' : '单个 IP'}
                     </span>
                     <Button
                       variant="ghost"
                       size="icon-sm"
-                      className="text-muted-foreground hover:bg-destructive-soft hover:text-destructive"
+                      className="border-ink text-ink hover:bg-hot-pink hover:text-ink"
                       aria-label={`移除 ${source.address}`}
                       onClick={() =>
                         setSources(current =>
@@ -388,14 +375,14 @@ export function RuleSheet({ mode, rule, rules, onClose, onSave }: Props) {
                 ))}
 
                 {sources.length === 0 && (
-                  <div className="flex items-center gap-2 rounded-lg border border-dashed border-border-strong bg-card/60 px-3 py-3 text-[11px] leading-relaxed text-muted-foreground">
-                    <ShieldCheck className="size-4 shrink-0" />
+                  <div className="flex items-center gap-2 border-2 border-dashed border-ink bg-paper px-3 py-3 font-mono text-[12px] leading-[1.6]">
+                    <ShieldCheck className="size-4 shrink-0" strokeWidth={2.4} />
                     还没有来源地址。保存后，这个端口将拒绝所有外部访问。
                   </div>
                 )}
               </div>
 
-              <div className="border-t border-border/70 p-3.5">
+              <div className="border-t-2 border-ink p-3.5">
                 <div className="grid gap-2 sm:grid-cols-[minmax(0,1fr)_132px_auto]">
                   <Input
                     ref={addressRef}
@@ -413,7 +400,7 @@ export function RuleSheet({ mode, rule, rules, onClose, onSave }: Props) {
                     placeholder="IP 或 CIDR，例如 192.168.1.10"
                     aria-label="要添加的 IP 地址或 CIDR"
                     aria-invalid={Boolean(sourceError)}
-                    className="h-9 text-[12px]"
+                    className="h-10 text-[12px]"
                   />
                   <Input
                     value={label}
@@ -427,32 +414,35 @@ export function RuleSheet({ mode, rule, rules, onClose, onSave }: Props) {
                     placeholder="备注（可选）"
                     aria-label="来源备注"
                     maxLength={24}
-                    className="h-9 text-[12px]"
+                    className="h-10 text-[12px]"
                   />
                   <Button
                     variant="secondary"
                     size="sm"
-                    className="h-9"
+                    className="h-10"
                     onClick={() => addSource()}
                   >
-                    <Plus className="size-3.5" />
+                    <Plus className="size-3.5" strokeWidth={3} />
                     添加
                   </Button>
                 </div>
                 {sourceError && (
-                  <p className="mt-1.5 text-[11px] text-destructive" role="alert">
+                  <p
+                    className="mt-2 border-2 border-ink bg-hot-pink px-2 py-1 font-mono text-[12px] font-bold text-ink"
+                    role="alert"
+                  >
                     {sourceError}
                   </p>
                 )}
-                <div className="mt-2.5 flex flex-wrap items-center gap-1.5">
-                  <span className="mr-0.5 text-[10px] text-muted-foreground">
+                <div className="mt-3 flex flex-wrap items-center gap-2">
+                  <span className="font-mono text-[11px] font-bold uppercase tracking-[0.12em]">
                     快速填入
                   </span>
                   {presets.map(preset => (
                     <button
                       key={preset.address}
                       type="button"
-                      className="rounded-full border border-border bg-card px-2 py-0.5 text-[10.5px] text-muted-foreground transition-colors hover:border-primary/30 hover:text-primary"
+                      className="border-2 border-ink bg-paper px-2 py-1 font-mono text-[11px] font-bold transition-colors duration-150 hover:bg-acid-lime"
                       onClick={() => {
                         setAddress(preset.address)
                         setLabel(preset.label)
@@ -467,12 +457,12 @@ export function RuleSheet({ mode, rule, rules, onClose, onSave }: Props) {
               </div>
             </section>
 
-            <div className="flex items-center justify-between gap-4 rounded-xl border border-border bg-muted/30 px-3.5 py-3">
+            <div className="flex items-center justify-between gap-4 border-2 border-ink bg-slab px-3.5 py-3">
               <div>
-                <strong className="block text-[12px] font-medium">
+                <strong className="block font-mono text-[11px] font-bold">
                   启用这条规则
                 </strong>
-                <p className="mt-0.5 text-[10.5px] text-muted-foreground">
+                <p className="mt-1 font-mono text-[12px] leading-[1.5]">
                   停用后恢复系统对该端口的原有策略，规则配置会保留。
                 </p>
               </div>
@@ -485,27 +475,29 @@ export function RuleSheet({ mode, rule, rules, onClose, onSave }: Props) {
 
             {formError && (
               <div
-                className="flex gap-2.5 rounded-[10px] border border-[#f0d5cf] bg-destructive-soft/80 p-3 text-[11.5px] leading-relaxed text-[#8f332a]"
+                className="flex gap-3 border-2 border-ink bg-hot-pink p-3.5 text-ink shadow-[4px_4px_0_0_#000]"
                 role="alert"
               >
-                <AlertTriangle className="mt-0.5 size-4 shrink-0" />
-                <span>{formError}</span>
+                <AlertTriangle className="mt-0.5 size-4 shrink-0" strokeWidth={2.6} />
+                <span className="font-mono text-[11px] leading-[1.6]">
+                  {formError}
+                </span>
               </div>
             )}
 
-            <div className="flex items-start gap-2 text-[10.5px] leading-relaxed text-muted-foreground">
-              <ShieldCheck className="mt-0.5 size-3.5 shrink-0" />
+            <div className="flex items-start gap-2 border-t-2 border-ink pt-4 font-mono text-[12px] leading-[1.6]">
+              <ShieldCheck className="mt-0.5 size-4 shrink-0" strokeWidth={2.4} />
               <span>
                 保存后仅更新界面预览。真正写入系统防火墙将在接入后台服务时实现。
               </span>
             </div>
           </div>
 
-          <footer className="flex items-center justify-between gap-3 border-t border-border bg-card px-5 py-3.5 sm:px-6">
-            <span className="hidden text-[10.5px] text-muted-foreground sm:block">
-              保存只影响本软件的规则
+          <footer className="flex items-center justify-between gap-3 border-t-4 border-ink bg-paper px-5 py-4 sm:px-6">
+            <span className="hidden font-mono text-[11px] font-bold uppercase tracking-[0.1em] sm:block">
+              保存只影响本软件规则
             </span>
-            <div className="flex w-full gap-2 sm:w-auto">
+            <div className="flex w-full gap-3 sm:w-auto">
               <Button
                 variant="secondary"
                 className="flex-1 sm:flex-none"
@@ -518,7 +510,7 @@ export function RuleSheet({ mode, rule, rules, onClose, onSave }: Props) {
                 disabled={!canSave}
                 className="flex-1 sm:flex-none"
               >
-                <Check className="size-3.5" />
+                <Check className="size-4" strokeWidth={3} />
                 {mode === 'create' ? '创建规则' : '保存修改'}
               </Button>
             </div>
@@ -526,5 +518,22 @@ export function RuleSheet({ mode, rule, rules, onClose, onSave }: Props) {
         </form>
       </SheetContent>
     </Sheet>
+  )
+}
+
+function FieldLabel({
+  htmlFor,
+  children,
+}: {
+  htmlFor?: string
+  children: ReactNode
+}) {
+  return (
+    <label
+      htmlFor={htmlFor}
+      className="block font-mono text-[12px] font-bold uppercase tracking-[0.14em]"
+    >
+      {children}
+    </label>
   )
 }
