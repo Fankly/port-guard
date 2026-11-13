@@ -1,7 +1,7 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
 mod commands;
-mod store;
+use port_guard_desktop::store;
 
 use tauri::Manager;
 
@@ -24,6 +24,8 @@ fn main() {
             commands::reset_state,
             commands::preview_policy,
             commands::app_info,
+            commands::read_system_rules,
+            commands::read_access_logs,
         ])
         .run(tauri::generate_context!())
         .expect("error while running Port Guard");

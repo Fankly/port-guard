@@ -1,7 +1,33 @@
 use anyhow::Result;
 
-#[cfg(target_os = "macos")]
+#[derive(Debug, serde::Serialize)]
+pub struct CaptureBatch {
+    pub events: Vec<crate::pflog::Event>,
+    pub undecodable: u32,
+    pub statistics_available: bool,
+    pub kernel_dropped: Option<u32>,
+}
+
 pub fn capture(interface: &str, port: u16, seconds: u64, limit: u32) -> Result<()> {
+    anyhow::ensure!(port != 0, "端口不合法");
+    let batch = collect(interface, Some(port), seconds, limit)?;
+    for event in &batch.events {
+        println!("{}", serde_json::to_string(event)?);
+    }
+    eprintln!(
+        "{}",
+        serde_json::json!({"kind":"capture_summary","events":batch.events.len(),"undecodable":batch.undecodable,"statistics_available":batch.statistics_available,"kernel_dropped":batch.kernel_dropped,"payload_saved":false})
+    );
+    Ok(())
+}
+
+#[cfg(target_os = "macos")]
+pub fn collect(
+    interface: &str,
+    port: Option<u16>,
+    seconds: u64,
+    limit: u32,
+) -> Result<CaptureBatch> {
     use anyhow::{bail, ensure};
     use std::{
         ffi::{CStr, CString},
@@ -45,7 +71,7 @@ pub fn capture(interface: &str, port: u16, seconds: u64, limit: u32) -> Result<(
         }
     }
     ensure!(
-        port != 0 && seconds > 0 && seconds <= 300 && limit > 0,
+        port != Some(0) && seconds > 0 && seconds <= 300 && limit > 0 && limit <= 10000,
         "端口、秒数或事件上限不合法"
     );
     let suffix = interface.strip_prefix("pflog").unwrap_or("");
@@ -71,9 +97,9 @@ pub fn capture(interface: &str, port: u16, seconds: u64, limit: u32) -> Result<(
         "设置非阻塞采集失败"
     );
     let start = Instant::now();
-    let mut delivered = 0;
+    let mut events = Vec::new();
     let mut skipped = 0;
-    while start.elapsed() < Duration::from_secs(seconds) && delivered < limit {
+    while start.elapsed() < Duration::from_secs(seconds) && events.len() < limit as usize {
         let mut h = ptr::null();
         let mut data = ptr::null();
         match unsafe { pcap_next_ex(handle.0, &mut h, &mut data) } {
@@ -92,9 +118,12 @@ pub fn capture(interface: &str, port: u16, seconds: u64, limit: u32) -> Result<(
                 let timestamp = (u64::try_from(header.ts.tv_sec)?) * 1_000_000_000
                     + (u64::try_from(header.ts.tv_usec)?) * 1000;
                 match crate::pflog::decode(packet, timestamp) {
-                    Ok(event) if event.source_port == port || event.destination_port == port => {
-                        println!("{}", serde_json::to_string(&event)?);
-                        delivered += 1;
+                    Ok(event)
+                        if port.is_none_or(|port| {
+                            event.source_port == port || event.destination_port == port
+                        }) =>
+                    {
+                        events.push(event);
                     }
                     Ok(_) => {}
                     Err(_) => skipped += 1,
@@ -113,14 +142,15 @@ pub fn capture(interface: &str, port: u16, seconds: u64, limit: u32) -> Result<(
         ifdrop: 0,
     };
     let stats_ok = unsafe { pcap_stats(handle.0, &mut stats) } == 0;
-    eprintln!(
-        "{}",
-        serde_json::json!({"kind":"capture_summary","events":delivered,"undecodable":skipped,"statistics_available":stats_ok,"kernel_dropped":if stats_ok{Some(stats.drop)}else{None},"payload_saved":false})
-    );
-    Ok(())
+    Ok(CaptureBatch {
+        events,
+        undecodable: skipped,
+        statistics_available: stats_ok,
+        kernel_dropped: stats_ok.then_some(stats.drop),
+    })
 }
 
 #[cfg(not(target_os = "macos"))]
-pub fn capture(_: &str, _: u16, _: u64, _: u32) -> Result<()> {
+pub fn collect(_: &str, _: Option<u16>, _: u64, _: u32) -> Result<CaptureBatch> {
     anyhow::bail!("当前采集原型只支持 macOS")
 }

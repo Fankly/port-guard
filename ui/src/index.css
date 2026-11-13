@@ -95,6 +95,7 @@
 
 @layer base {
   html {
+    scrollbar-gutter: stable;
     color-scheme: light;
     -webkit-font-smoothing: antialiased;
     text-rendering: optimizeLegibility;
@@ -304,19 +305,19 @@
 
 @keyframes dialog-in {
   from {
-    transform: translate(-50%, -48%);
+    opacity: 0;
   }
   to {
-    transform: translate(-50%, -50%);
+    opacity: 1;
   }
 }
 
 @keyframes dialog-out {
   from {
-    transform: translate(-50%, -50%);
+    opacity: 1;
   }
   to {
-    transform: translate(-50%, -46%);
+    opacity: 0;
   }
 }
 

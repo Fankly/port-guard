@@ -17,7 +17,7 @@ if toolchain_root:
     candidates = sorted((toolchain_root / 'rustup/toolchains').glob('stable-*'))
     if len(candidates) != 1:
         raise SystemExit('Expected one stable local Rust toolchain')
-    env['CARGO_HOME'] = str(toolchain_root / 'cargo')
+    env['CARGO_HOME'] = os.environ.get('CARGO_HOME', str(toolchain_root / 'cargo'))
     env['RUSTUP_HOME'] = str(toolchain_root / 'rustup')
     env['RUSTUP_TOOLCHAIN'] = candidates[0].name
     exe = '.exe' if os.name == 'nt' else ''
@@ -30,7 +30,7 @@ else:
     if not cargo:
         raise SystemExit('Install Rust, or set PORT_GUARD_TOOLCHAIN to a local rustup directory')
 if config.get('target_dir'):
-    env['CARGO_TARGET_DIR'] = config['target_dir']
+    env['CARGO_TARGET_DIR'] = os.environ.get('CARGO_TARGET_DIR', config['target_dir'])
 if len(sys.argv) < 2:
     raise SystemExit('Usage: python3 tools/dev.py test | build | run -- <pf-probe arguments>')
 raise SystemExit(subprocess.run([cargo, *sys.argv[1:]], cwd=root, env=env).returncode)

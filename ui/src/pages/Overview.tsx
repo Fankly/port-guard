@@ -11,7 +11,8 @@ import type { PageId } from '../hooks/use-route'
 import type { PlatformId } from '../lib/platform'
 import { platformCopy } from '../lib/platform'
 import { cn } from '../lib/utils'
-import { demoAccess, formatNumber, protocolLabel, shortTime } from '../data'
+import { formatNumber, protocolLabel, shortTime } from '../data'
+import { useAccessLogs } from '../hooks/use-access-logs'
 import type { Rule } from '../data'
 import { lazy, Suspense } from 'react'
 import type { ReactNode } from 'react'
@@ -70,6 +71,8 @@ export default function Overview({
   onToggle,
 }: Props) {
   const engineName = platformCopy(platform).engineName
+  const logs = useAccessLogs()
+  const accessEvents = logs.events
   const rules = useAppStore(state => state.rules)
   const operations = useAppStore(state => state.operations)
 
@@ -77,18 +80,18 @@ export default function Overview({
   const uniqueSources = new Set(
     activeRules.flatMap(rule => rule.sources.map(source => source.address)),
   )
-  const allowed = demoAccess
+  const allowed = accessEvents
     .filter(event => event.result === 'allow')
     .reduce((sum, event) => sum + event.count, 0)
-  const blocked = demoAccess
+  const blocked = accessEvents
     .filter(event => event.result === 'block')
     .reduce((sum, event) => sum + event.count, 0)
   const blockedSources = new Set(
-    demoAccess
+    accessEvents
       .filter(event => event.result === 'block')
       .map(event => event.source),
   )
-  const recentBlocked = demoAccess.filter(event => event.result === 'block')
+  const recentBlocked = accessEvents.filter(event => event.result === 'block')
   const hasActiveRules = activeRules.length > 0
   const today = new Date()
     .toLocaleDateString('sv-SE', {
@@ -98,10 +101,10 @@ export default function Overview({
     })
     .replaceAll('-', '.')
 
-  const chartData: PortTraffic[] = [...new Set(demoAccess.map(e => e.port))]
+  const chartData: PortTraffic[] = [...new Set(accessEvents.map(e => e.port))]
     .sort((a, b) => a - b)
     .map(port => {
-      const events = demoAccess.filter(event => event.port === port)
+      const events = accessEvents.filter(event => event.port === port)
       const allow = events
         .filter(event => event.result === 'allow')
         .reduce((sum, event) => sum + event.count, 0)
@@ -143,7 +146,7 @@ export default function Overview({
           <div className="min-w-0">
             <span className="inline-flex flex-wrap items-center gap-2 border-2 border-paper bg-ink px-2.5 py-1 font-mono text-[11px] font-bold uppercase tracking-[0.12em] text-paper">
               {hasActiveRules ? <LiveDot /> : <span className="size-2 border-2 border-paper bg-hot-pink" />}
-              {hasActiveRules ? '防护运行中' : '防护已暂停'}
+              系统过滤层未接入
               <span className="h-3 w-0.5 bg-paper" aria-hidden="true" />
               {engineName} ENGINE / LOCAL
             </span>
@@ -151,33 +154,19 @@ export default function Overview({
             <h2 className="mt-5 max-w-[720px] font-sans text-[32px] font-black leading-[0.95] tracking-[-0.02em] sm:text-[48px] lg:text-[64px]">
               {hasActiveRules ? (
                 <>
-                  <span className="block">只放行名单内的设备</span>
-                  <span className="block">其余访问留在门外。</span>
+                  <span className="block">规则已保存到本机，</span>
+                  <span className="block">等待接入系统防火墙。</span>
                 </>
               ) : (
                 <>
-                  <span className="block">规则已暂停，</span>
-                  <span className="block">端口暂时处于未管理状态。</span>
+                  <span className="block">还没有启用的配置，</span>
+                  <span className="block">从创建端口规则开始。</span>
                 </>
               )}
             </h2>
 
             <p className="mt-4 max-w-[560px] font-mono text-[12px] leading-[1.7] text-paper">
-              {hasActiveRules ? (
-                <>
-                  {activeRules.length} 个端口正在按白名单工作，样本窗口内已放行{' '}
-                  <strong className="bg-acid-lime px-1 font-bold text-ink">
-                    {formatNumber(allowed)}
-                  </strong>{' '}
-                  次访问、拦截{' '}
-                  <strong className="bg-hot-pink px-1 font-bold text-ink">
-                    {formatNumber(blocked)}
-                  </strong>{' '}
-                  次访问。
-                </>
-              ) : (
-                <>启用任意一条规则后，只有白名单内的来源可以访问对应端口。</>
-              )}
+              已启用 {activeRules.length} 条应用配置，尚未写入系统防火墙。日志状态：{logs.statusLabel}。
             </p>
 
             <div className="mt-6 flex flex-wrap gap-3">
@@ -225,7 +214,7 @@ export default function Overview({
             </div>
             <div className="bg-ink px-3 py-4 sm:px-4">
               <span className="block font-mono text-[11px] font-bold uppercase tracking-[0.1em] text-paper">
-                样本拦截
+                拦截次数
               </span>
               <strong className="num mt-2 block font-sans text-[38px] font-black leading-[0.9] text-hot-pink sm:text-[46px]">
                 {formatNumber(blocked)}
@@ -329,7 +318,7 @@ export default function Overview({
               <Kicker>Sample window</Kicker>
               <CardTitle className="mt-2">访问分布</CardTitle>
               <p className="mt-1 font-mono text-[12px] leading-[1.5]">
-                按目标端口聚合 · 样本数据
+                按本机端口聚合 · {logs.statusLabel}
               </p>
             </div>
             <div className="flex shrink-0 flex-col gap-1 pt-1 font-mono text-[11px] font-bold uppercase">
@@ -354,10 +343,10 @@ export default function Overview({
           </div>
           <CardFooter>
             <span>
-              {chartData.length} 个端口 · {formatNumber(allowed + blocked)} 次样本访问
+              {chartData.length} 个端口 · {formatNumber(allowed + blocked)} 条已采集事件
             </span>
             <span className="border border-ink bg-slab px-1.5 py-px font-bold uppercase">
-              演示数据
+              {logs.statusLabel}
             </span>
           </CardFooter>
         </Card>
@@ -370,7 +359,7 @@ export default function Overview({
             </div>
             <span className="inline-flex items-center gap-1.5 border-2 border-ink bg-hot-pink px-2 py-0.5 font-mono text-[11px] font-bold uppercase tracking-[0.08em] text-ink">
               <Ban className="size-3" strokeWidth={3} />
-              {recentBlocked.length} 条聚合
+              {recentBlocked.length} 条事件
             </span>
           </CardHeader>
 
@@ -402,7 +391,7 @@ export default function Overview({
             {recentBlocked.length === 0 && (
               <EmptyState
                 icon={<ShieldCheck className="size-6" strokeWidth={2.4} />}
-                title="样本窗口内没有拦截"
+                title="尚无访问日志"
                 description="非白名单访问会出现在这里。"
                 className="py-10"
               />

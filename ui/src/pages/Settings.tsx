@@ -27,6 +27,7 @@ import type { PlatformId } from '../lib/platform'
 import { detectPlatform, platformCopy } from '../lib/platform'
 import { cn } from '../lib/utils'
 import { useReturnFocus } from '../hooks/use-return-focus'
+import { useAccessLogs } from '../hooks/use-access-logs'
 import { ConfirmDialog } from '../components/feedback/confirm-dialog'
 import { PageHeader } from '../components/shared/page-header'
 import { Segmented } from '../components/shared/segmented'
@@ -90,8 +91,9 @@ export default function Settings({
   const saving = desktop && saved && saveState === 'saving'
   const failed = desktop && saved && saveState === 'error'
   const copy = platformCopy(detectPlatform(appInfo?.platform))
+  const logs = useAccessLogs(!storageError)
   const interfaces = interfaceCatalog[copy.id]
-  const logInterfaces = logInterfaceCatalog[copy.id]
+  const logInterfaces = logs.data?.interfaces.length ? logs.data.interfaces : logInterfaceCatalog[copy.id]
 
   const interfaceOptions = interfaces.some(item => item.value === draft.interface)
     ? interfaces
@@ -225,10 +227,11 @@ export default function Settings({
 
             <SettingRow
               title="登录后自动启动"
-              description="关闭主窗口后，后台服务继续维护规则并采集日志。"
+              description="待接入：登录启动与后台常驻服务尚未实现。"
             >
               <Switch
-                checked={draft.launchAtLogin}
+                checked={false}
+                disabled
                 onCheckedChange={value => update('launchAtLogin', value)}
                 aria-label="登录后自动启动"
               />
@@ -244,10 +247,11 @@ export default function Settings({
 
             <SettingRow
               title="拦截通知"
-              description="当非白名单来源访问受管端口时显示系统通知。"
+              description="待接入：系统通知尚未实现。"
             >
               <Switch
-                checked={draft.notifyBlocked}
+                checked={false}
+                disabled
                 onCheckedChange={value => update('notifyBlocked', value)}
                 aria-label="拦截通知"
               />
@@ -255,10 +259,11 @@ export default function Settings({
 
             <SettingRow
               title="日志中断提醒"
-              description="日志采集失败、队列丢失或读取异常时提醒我，避免把空列表当成没有访问。"
+              description="待接入：系统通知尚未实现；采集异常会在日志页面显示。"
             >
               <Switch
-                checked={draft.notifyLogGap}
+                checked={false}
+                disabled
                 onCheckedChange={value => update('notifyLogGap', value)}
                 aria-label="日志中断提醒"
               />
@@ -285,22 +290,17 @@ export default function Settings({
               title="运行状态"
               description={
                 storageError
-                  ? '界面无法读取本机 SQLite，当前显示演示数据；重试成功后会自动恢复。'
+                  ? '界面无法读取本机 SQLite，当前没有加载数据；重试成功后会自动恢复。'
                   : desktop
-                    ? '界面已通过 Tauri IPC 接入本机 SQLite；系统过滤层状态仍为示例。'
+                    ? '界面已连接本机 Rust / SQLite；系统过滤层尚未接入。'
                     : '这里是设计预览中的静态状态，尚未连接真实系统。'
-              }
-              aside={
-                <span className="border border-ink bg-tangerine px-1.5 py-px font-mono text-[12px] font-bold uppercase tracking-[0.08em]">
-                  示例
-                </span>
               }
             />
             <div>
               <StatusRow
                 icon={<Settings2 className="size-3.5" strokeWidth={2.6} />}
                 label="后台服务"
-                detail={`${copy.serviceLabel} · 已授权`}
+                detail={copy.serviceLabel}
                 value={copy.serviceStatus}
               />
               <StatusRow
@@ -312,8 +312,8 @@ export default function Settings({
               <StatusRow
                 icon={<ScrollText className="size-3.5" strokeWidth={2.6} />}
                 label="日志采集"
-                detail={copy.logDetail}
-                value={copy.logStatus}
+                detail={logs.data?.interface ?? logs.data?.message ?? '检查本机日志源'}
+                value={logs.statusLabel}
               />
               <StatusRow
                 icon={<Terminal className="size-3.5" strokeWidth={2.6} />}
@@ -336,12 +336,6 @@ export default function Settings({
                 error={storageError}
               />
             </div>
-            <div className="flex gap-2 border-t-2 border-ink bg-slab px-4 py-3 font-mono text-[11px] leading-[1.6]">
-              <Info className="mt-0.5 size-3.5 shrink-0" strokeWidth={2.6} />
-              <span>
-                系统版本与规则挂载信息将在接入后台服务后读取，不使用固定演示值。
-              </span>
-            </div>
           </Card>
 
           <Card>
@@ -350,8 +344,8 @@ export default function Settings({
               title="数据与维护"
               description={
                 desktop
-                  ? '导出本机规则与日志；恢复演示数据只影响本应用的 SQLite 存储。'
-                  : '导出界面预览中的规则与日志，或恢复初始演示数据。'
+                  ? '导出已保存的规则与操作记录；清空只影响本应用的 SQLite 存储。'
+                  : '导出浏览器预览中的规则与日志，或清空本地预览状态。'
               }
             />
             <div>
@@ -369,7 +363,7 @@ export default function Settings({
               />
               <DataAction
                 icon={<RotateCcw className="size-4" strokeWidth={2.6} />}
-                title="恢复演示数据"
+                title="清空应用数据"
                 description={
                   desktop
                     ? '清除本机 SQLite 状态，不会影响系统防火墙'
@@ -395,7 +389,7 @@ export default function Settings({
                 </strong>
                 <span className="mt-1.5 block font-mono text-[11px] font-bold uppercase tracking-[0.1em]">
                   {desktop
-                    ? '本机端口白名单 · 桌面预览'
+                    ? '本机端口白名单 · 本机数据'
                     : '本机端口白名单 · 设计预览'}
                 </span>
               </div>
@@ -407,7 +401,7 @@ export default function Settings({
               <span>目标平台 macOS 13+ / Windows 10+</span>
               <span>
                 {desktop
-                  ? `Tauri 2 · ${appInfo?.platform ?? copy.osLabel} ${appInfo?.arch ?? ''}`
+                  ? `${appInfo?.runtime === 'rust-http' ? '浏览器 / Rust' : 'Tauri 2'} · ${appInfo?.platform ?? copy.osLabel} ${appInfo?.arch ?? ''}`
                   : 'React + Tauri 方向'}
               </span>
             </div>
@@ -495,13 +489,13 @@ export default function Settings({
 
       {confirmReset && (
         <ConfirmDialog
-          title="恢复初始演示数据？"
+          title="清空应用数据？"
           description={
             desktop
               ? '本机 SQLite 中的规则、操作日志和设置都会被重置。该操作不会修改系统防火墙。'
               : '本机预览中的规则、操作日志和设置都会被重置。该操作只影响浏览器 localStorage，不会修改系统防火墙。'
           }
-          confirmLabel="恢复演示数据"
+          confirmLabel="清空应用数据"
           danger
           onCancel={() => {
             setConfirmReset(false)
@@ -523,12 +517,10 @@ function SectionHeader({
   icon,
   title,
   description,
-  aside,
 }: {
   icon: ReactNode
   title: string
   description: string
-  aside?: ReactNode
 }) {
   return (
     <CardHeader className="items-start gap-3 border-b-2 border-ink bg-slab px-4 py-4">
@@ -540,7 +532,6 @@ function SectionHeader({
           <h2 className="font-sans text-[24px] font-black leading-[1.05] tracking-[-0.02em]">
             {title}
           </h2>
-          {aside}
         </div>
         <p className="mt-1 font-mono text-[12px] leading-[1.6]">
           {description}

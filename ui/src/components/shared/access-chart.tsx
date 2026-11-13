@@ -60,7 +60,7 @@ export function AccessByPortChart({ data }: { data: PortTraffic[] }) {
   if (data.length === 0) {
     return (
       <div className="grid h-[194px] place-items-center border-2 border-ink bg-slab font-mono text-[12px] font-bold uppercase tracking-[0.08em]">
-        样本窗口内没有访问数据
+        已采集记录中没有访问数据
       </div>
     )
   }

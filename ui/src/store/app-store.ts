@@ -3,10 +3,8 @@ import type { Operation, Preferences, PreviewState, Rule } from '../data'
 import {
   createId,
   formatTime,
-  initialState,
+  emptyState,
   protocolLabel,
-  readPreview,
-  resetPreview,
 } from '../data'
 
 type AppState = PreviewState & {
@@ -42,7 +40,15 @@ function withOperation(
   return [operation(action, detail, port), ...operations].slice(0, 100)
 }
 
-const initial = typeof window === 'undefined' ? initialState : readPreview()
+const initial = emptyState()
+
+export function stateAfterDeletingRule(state: PreviewState, rule: Rule): PreviewState {
+  return {
+    rules: state.rules.filter(item => item.id !== rule.id),
+    operations: withOperation(state.operations, '删除应用规则', `${rule.name} · 已删除端口 ${rule.port} 的应用配置`, rule.port),
+    preferences: state.preferences,
+  }
+}
 
 export const useAppStore = create<AppState>(set => ({
   ...initial,
@@ -110,7 +116,7 @@ export const useAppStore = create<AppState>(set => ({
     })),
 
   reset: () => {
-    const next = resetPreview()
+    const next = emptyState()
     set({
       rules: next.rules,
       operations: next.operations,

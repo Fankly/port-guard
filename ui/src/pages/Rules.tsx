@@ -12,6 +12,7 @@ import {
   Trash2,
 } from 'lucide-react'
 import { useMemo, useState } from 'react'
+import { SystemRules } from '../components/rules/system-rules'
 import { protocolLabel } from '../data'
 import type { Rule } from '../data'
 import { cn } from '../lib/utils'
@@ -43,6 +44,7 @@ export default function Rules({ onNew, onEdit, onDelete, onToggle }: Props) {
   const [query, setQuery] = useState('')
   const [filter, setFilter] = useState<Filter>('all')
   const [ascending, setAscending] = useState(true)
+  const [view, setView] = useState<'system' | 'managed'>('system')
 
   const active = rules.filter(rule => rule.enabled).length
   const uniqueSources = new Set(
@@ -80,8 +82,8 @@ export default function Rules({ onNew, onEdit, onDelete, onToggle }: Props) {
     <div>
       <PageHeader
         label="Rules / 规则"
-        title="端口规则"
-        description="每个规则管理一个本机端口，只有名单内的来源能够访问。未配置的端口不受影响。"
+        title="端口与系统规则"
+        description="自动识别系统并读取电脑原有规则，可按用途和来源分类查看。应用白名单单独保存。"
         actions={
           <Button onClick={onNew}>
             <Plus className="size-4" strokeWidth={3} />
@@ -89,6 +91,15 @@ export default function Rules({ onNew, onEdit, onDelete, onToggle }: Props) {
           </Button>
         }
       />
+
+      <div className="mb-5 overflow-x-auto">
+        <Segmented value={view} onChange={setView} ariaLabel="规则视图" options={[
+          { value: 'system', label: '电脑原有规则' },
+          { value: 'managed', label: '应用白名单', count: rules.length },
+        ]} />
+      </div>
+
+      {view === 'system' ? <SystemRules /> : <>
 
       <Card className="mb-6 grid grid-cols-2 border-2 shadow-[8px_8px_0_0_#000] lg:grid-cols-[1.2fr_1fr_1fr_1fr]">
         <div className="flex items-center gap-3 border-b-2 border-r-2 border-ink bg-acid-lime px-4 py-4 lg:border-b-0">
@@ -101,7 +112,7 @@ export default function Rules({ onNew, onEdit, onDelete, onToggle }: Props) {
               <span className="ml-1 font-mono text-[11px] font-bold">/ {rules.length}</span>
             </div>
             <span className="mt-1 block font-mono text-[11px] font-bold uppercase tracking-[0.1em]">
-              规则正在生效
+              应用规则已启用
             </span>
           </div>
         </div>
@@ -126,7 +137,7 @@ export default function Rules({ onNew, onEdit, onDelete, onToggle }: Props) {
               ariaLabel="按状态筛选"
               options={[
                 { value: 'all', label: '全部', count: rules.length },
-                { value: 'enabled', label: '生效中', count: active },
+                { value: 'enabled', label: '已启用', count: active },
                 { value: 'disabled', label: '已停用', count: rules.length - active },
               ]}
             />
@@ -304,7 +315,7 @@ export default function Rules({ onNew, onEdit, onDelete, onToggle }: Props) {
         <footer className="flex flex-wrap items-center justify-between gap-2 border-t-2 border-ink bg-slab px-4 py-3 font-mono text-[11px] sm:px-5">
           <span className="flex items-center gap-1.5 font-bold">
             <ShieldCheck className="size-3.5 shrink-0" strokeWidth={2.6} />
-            停用或删除只撤除本软件的规则，对应端口回到系统原有策略。
+            当前保存应用白名单配置；系统防火墙执行层尚未接入。
           </span>
           <span className="border border-ink bg-paper px-1.5 py-px font-bold">
             {filtered.length} / {rules.length} 条规则
@@ -320,6 +331,7 @@ export default function Rules({ onNew, onEdit, onDelete, onToggle }: Props) {
           CIDR 网段覆盖，它依然可以访问。
         </p>
       </div>
+      </>}
     </div>
   )
 }

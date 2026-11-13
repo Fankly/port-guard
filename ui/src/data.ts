@@ -20,6 +20,11 @@ export type AccessEvent = {
   protocol: Protocol
   result: 'allow' | 'block'
   count: number
+  direction?: 'in' | 'out'
+  local?: string
+  ruleLabel?: string
+  sourcePort?: number
+  destinationPort?: number
 }
 export type Operation = {
   id: string
@@ -117,6 +122,24 @@ export const defaultPreferences: Preferences = {
   notifyBlocked: false,
   notifyLogGap: true,
 }
+
+/** A real empty database starts empty; illustrative rules are never seeded. */
+export function emptyState(reportedPlatform?: string): PreviewState {
+  const platform = detectPlatform(reportedPlatform)
+  return {
+    rules: [],
+    operations: [],
+    preferences: {
+      ...defaultPreferences,
+      interface: platform === 'windows' ? '以太网' : platform === 'macos' ? 'en0' : '默认接口',
+      logInterface: platform === 'windows' ? 'WFP Net Events' : platform === 'macos' ? 'pflog7' : '系统日志',
+      launchAtLogin: false,
+    },
+  }
+}
+
+// No capture backend exists yet. Never present illustrative packets as data.
+export const accessEvents: AccessEvent[] = []
 
 const initialState: PreviewState = {
   rules: demoRules,

@@ -5,9 +5,9 @@ function items(engineName: string) {
   return [
     '本机端口白名单',
     'LOCAL ONLY',
-    `${engineName} ENGINE / SAMPLE`,
-    '白名单之外 · 一律拒绝',
-    '设计预览',
+    `${engineName} ENGINE / 未接入`,
+    '规则配置 · 本机存储',
+    '本机数据',
     'PORT GUARD',
     '按端口管理访问',
     'NO CLOUD · NO NOISE',
@@ -41,7 +41,7 @@ export function MarqueeBar({ platform }: { platform: PlatformId }) {
         </div>
       </div>
       <span className="sr-only">
-        Port Guard：本机端口白名单，当前为界面设计预览。
+        Port Guard：本机端口白名单，当前为界面本机数据。
       </span>
     </div>
   )

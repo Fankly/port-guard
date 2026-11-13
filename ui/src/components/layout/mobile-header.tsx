@@ -1,5 +1,5 @@
 import { ShieldCheck } from 'lucide-react'
-import { LiveDot, PreviewChip } from '../shared/status'
+import { PreviewChip } from '../shared/status'
 
 export function MobileHeader({
   desktop,
@@ -25,8 +25,8 @@ export function MobileHeader({
         </span>
       </div>
       <span className="hidden min-[420px]:flex items-center gap-1.5 font-mono text-[11px] font-bold uppercase tracking-[0.08em]">
-        {activeCount > 0 ? <LiveDot /> : <span className="size-2 border border-ink bg-hot-pink" />}
-        {activeCount > 0 ? '防护中' : '未启用'}
+        <span className="size-2 border border-ink bg-hot-pink" />
+        {activeCount > 0 ? '白名单待应用' : '执行待接入'}
       </span>
       <PreviewChip />
     </header>

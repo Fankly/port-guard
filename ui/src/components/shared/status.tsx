@@ -19,7 +19,7 @@ export function PreviewChip() {
     <Badge
       variant="outline"
       className="gap-1.5 bg-paper font-mono text-[11px] font-bold tracking-[0.12em] shadow-[2px_2px_0_0_#000]"
-      title="所有数据均为界面演示样本，不会修改系统防火墙"
+      title="系统规则与应用配置从本机读取；防火墙执行层尚未接入"
     >
       <span className="size-1.5 bg-hot-pink" aria-hidden="true" />
       设计预览
@@ -84,7 +84,7 @@ export function StatePill({
       ) : (
         <span className="size-1.5 border border-ink bg-paper" aria-hidden="true" />
       )}
-      {enabled ? '生效中' : '已停用'}
+      {enabled ? '已启用' : '已停用'}
     </span>
   )
 }

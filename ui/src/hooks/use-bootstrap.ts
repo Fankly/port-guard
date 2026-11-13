@@ -2,11 +2,10 @@ import { useQuery } from '@tanstack/react-query'
 import { useEffect, useRef, useState } from 'react'
 import type { AppInfo } from '../bridge'
 import {
-  isDesktop,
   loadDesktopState,
   readAppInfo,
 } from '../bridge'
-import { initialState } from '../data'
+import { emptyState } from '../data'
 import { useAppStore } from '../store/app-store'
 
 type Bootstrap = {
@@ -21,7 +20,7 @@ export type BootstrapStatus = 'loading' | 'ready' | 'error'
  * loading/error surface. The browser preview stays synchronous and local.
  */
 export function useBootstrap() {
-  const desktop = isDesktop()
+  const desktop = true // Both WebView and browser now require the real backend.
   const hydrate = useAppStore(state => state.hydrate)
   const [status, setStatus] = useState<BootstrapStatus>(
     desktop ? 'loading' : 'ready',
@@ -49,7 +48,7 @@ export function useBootstrap() {
     if (!desktop) return
     if (query.isSuccess) {
       if (!hydrated.current) {
-        hydrate(query.data.state ?? initialState)
+        hydrate(query.data.state ?? emptyState(query.data.info?.platform))
         hydrated.current = true
       }
       setStatus('ready')

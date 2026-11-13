@@ -63,6 +63,22 @@ pub struct PreviewState {
     pub preferences: Preferences,
 }
 
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct AccessRecord {
+    pub id: String,
+    pub timestamp_ms: u64,
+    pub source: String,
+    pub local: String,
+    pub port: u16,
+    pub source_port: u16,
+    pub destination_port: u16,
+    pub protocol: String,
+    pub result: String,
+    pub direction: String,
+    pub rule_label: String,
+}
+
 impl Preferences {
     fn defaults() -> Self {
         Self {
@@ -77,6 +93,12 @@ impl Preferences {
 }
 
 const SCHEMA: &str = r#"
+CREATE TABLE IF NOT EXISTS access_events (
+    id TEXT PRIMARY KEY,
+    timestamp_ms INTEGER NOT NULL,
+    data TEXT NOT NULL
+);
+CREATE INDEX IF NOT EXISTS access_events_time ON access_events(timestamp_ms);
 CREATE TABLE IF NOT EXISTS rules (
     id          TEXT PRIMARY KEY,
     name        TEXT NOT NULL,
@@ -216,11 +238,28 @@ impl Store {
     }
 
     pub fn reset(&self) -> Result<()> {
-        let connection = self.connection.lock().expect("数据库连接锁已损坏");
-        connection.execute_batch(
-            "DELETE FROM sources; DELETE FROM rules; DELETE FROM operations; DELETE FROM preferences;",
+        let mut connection = self.connection.lock().expect("数据库连接锁已损坏");
+        let transaction = connection.transaction()?;
+        transaction.execute_batch(
+            "DELETE FROM sources; DELETE FROM rules; DELETE FROM operations; DELETE FROM preferences; DELETE FROM access_events;",
         )?;
+        transaction.commit()?;
         Ok(())
+    }
+
+    pub fn access_records(&self, events: &[AccessRecord], retention_days: u64, now_ms: u64) -> Result<Vec<AccessRecord>> {
+        ensure!([7, 14, 30].contains(&retention_days), "日志保留天数无效");
+        let mut connection = self.connection.lock().expect("数据库连接锁已损坏");
+        let transaction = connection.transaction()?;
+        for event in events {
+            transaction.execute("INSERT OR IGNORE INTO access_events (id,timestamp_ms,data) VALUES (?1,?2,?3)", params![event.id, event.timestamp_ms, serde_json::to_string(event)?])?;
+        }
+        transaction.execute("DELETE FROM access_events WHERE timestamp_ms < ?1", [now_ms.saturating_sub(retention_days * 86400000)])?;
+        transaction.execute("DELETE FROM access_events WHERE id IN (SELECT id FROM access_events ORDER BY timestamp_ms DESC,id DESC LIMIT -1 OFFSET 10000)", [])?;
+        transaction.commit()?;
+        let mut statement = connection.prepare("SELECT data FROM access_events ORDER BY timestamp_ms DESC,id DESC LIMIT 1000")?;
+        let rows = statement.query_map([], |row| row.get::<_, String>(0))?.collect::<rusqlite::Result<Vec<_>>>()?;
+        rows.iter().map(|data| serde_json::from_str(data).map_err(Into::into)).collect()
     }
 
     fn read_rules(connection: &Connection) -> Result<Vec<Rule>> {
@@ -317,6 +356,10 @@ impl Store {
 
 /// Validate a UI state with the same core used by the `pf-probe` CLI.
 pub fn compiled_policy(state: &PreviewState) -> Result<CompiledPolicy> {
+    policy_with_interfaces(state, &state.preferences.interface, &state.preferences.log_interface)
+}
+
+fn policy_with_interfaces(state: &PreviewState, interface: &str, log_interface: &str) -> Result<CompiledPolicy> {
     ensure!(
         ["7", "14", "30"].contains(&state.preferences.retention.as_str()),
         "日志保留天数必须为 7、14 或 30"
@@ -366,15 +409,19 @@ pub fn compiled_policy(state: &PreviewState) -> Result<CompiledPolicy> {
     ensure!(total_sources <= 2000, "白名单来源总数超过原型上限 2000");
 
     Policy {
-        interface: state.preferences.interface.clone(),
-        log_interface: state.preferences.log_interface.clone(),
+        interface: interface.into(),
+        log_interface: log_interface.into(),
         services,
     }
     .compile()
 }
 
 fn validate(state: &PreviewState) -> Result<()> {
-    compiled_policy(state)?;
+    // SQLite holds platform-neutral settings. Windows adapter names and WFP
+    // event sources are not PF interface tokens; only PF rendering checks them.
+    ensure!(!state.preferences.interface.trim().is_empty(), "网络接口不能为空");
+    ensure!(!state.preferences.log_interface.trim().is_empty(), "日志来源不能为空");
+    policy_with_interfaces(state, "pg0", "pflog0")?;
     ensure!(state.operations.len() <= 200, "操作日志超过原型上限 200 条");
     Ok(())
 }
@@ -446,5 +493,29 @@ mod tests {
 
         store.reset().unwrap();
         assert!(store.load().unwrap().is_none());
+    }
+
+    #[test]
+    fn windows_preferences_round_trip_without_pf_interface_validation() {
+        let directory = tempdir().unwrap();
+        let path = directory.path().join("中文目录").join("port-guard.sqlite3");
+        let mut state = sample();
+        state.preferences.interface = "以太网".into();
+        state.preferences.log_interface = "WFP Net Events".into();
+        {
+            let store = Store::open(path.clone()).unwrap();
+            store.save(&state).unwrap();
+        }
+        let store = Store::open(path).unwrap();
+        let loaded = store.load().unwrap().unwrap();
+        assert_eq!(loaded.preferences.interface, "以太网");
+        assert_eq!(loaded.preferences.log_interface, "WFP Net Events");
+        assert_eq!(loaded.rules[0].sources[0].address, "192.0.2.0/24");
+        // Platform-neutral storage must not make these names valid PF tokens.
+        assert!(compiled_policy(&loaded).is_err());
+        let mut invalid = state.clone();
+        invalid.rules[0].sources[0].address = "not-an-ip".into();
+        assert!(store.save(&invalid).is_err());
+        assert_eq!(store.load().unwrap().unwrap().rules[0].sources[0].address, "192.0.2.0/24");
     }
 }

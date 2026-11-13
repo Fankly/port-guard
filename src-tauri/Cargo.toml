@@ -4,6 +4,7 @@ version = "0.1.0"
 edition = "2024"
 publish = false
 description = "Port Guard Tauri 2 desktop shell"
+default-run = "port-guard-desktop"
 
 [build-dependencies]
 tauri-build = { version = "2", features = [] }

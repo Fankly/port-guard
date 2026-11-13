@@ -273,20 +273,8 @@ export default function Operations() {
 
         <footer className="flex flex-wrap items-center justify-between gap-2 border-t-2 border-ink bg-slab px-4 py-3 font-mono text-[11px] sm:px-5">
           <span className="font-bold">共 {filtered.length} 条记录 · 最多保留最近 100 条</span>
-          <span className="inline-flex items-center gap-1.5 border border-ink bg-tangerine px-1.5 py-px font-bold">
-            <span className="size-1.5 bg-ink" />
-            界面演示样本
-          </span>
         </footer>
       </Card>
-
-      <div className="mt-6 flex gap-3 border-2 border-ink bg-paper px-4 py-3.5 shadow-[4px_4px_0_0_#000]">
-        <History className="mt-0.5 size-4 shrink-0" strokeWidth={2.6} />
-        <p className="font-mono text-[12px] leading-[1.7]">
-          <strong className="font-bold">日志是界面预览的一部分。</strong>
-          真正接入后台服务后，操作结果会由执行层返回，失败原因也会保留在这里，不用“配置已保存”代替“规则已生效”。
-        </p>
-      </div>
     </div>
   )
 }

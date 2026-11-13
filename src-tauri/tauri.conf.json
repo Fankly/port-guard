@@ -4,7 +4,7 @@
   "version": "0.1.0",
   "identifier": "dev.portguard.desktop",
   "build": {
-    "beforeDevCommand": "npm --prefix ui run dev",
+    "beforeDevCommand": "npm --prefix ui run dev:ui",
     "devUrl": "http://127.0.0.1:1420",
     "beforeBuildCommand": "npm --prefix ui run build",
     "frontendDist": "../ui/dist"

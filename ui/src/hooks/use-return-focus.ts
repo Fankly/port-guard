@@ -23,11 +23,11 @@ export function useReturnFocus() {
         return
       }
       if (target?.isConnected) {
-        target.focus()
+        target.focus({ preventScroll: true })
         return
       }
       const fallback = document.querySelector<HTMLElement>('#main h1')
-      fallback?.focus()
+      fallback?.focus({ preventScroll: true })
     })
   }, [])
 

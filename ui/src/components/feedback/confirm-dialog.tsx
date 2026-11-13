@@ -16,6 +16,7 @@ export function ConfirmDialog({
   danger,
   onCancel,
   onConfirm,
+  busy = false,
 }: {
   title: string
   description: string
@@ -23,15 +24,16 @@ export function ConfirmDialog({
   danger?: boolean
   onCancel: () => void
   onConfirm: () => void
+  busy?: boolean
 }) {
   return (
     <AlertDialog
       open
       onOpenChange={open => {
-        if (!open) onCancel()
+        if (!open && !busy) onCancel()
       }}
     >
-      <AlertDialogContent>
+      <AlertDialogContent onCloseAutoFocus={event => event.preventDefault()}>
         <div className="flex gap-4">
           <span className="grid size-12 shrink-0 place-items-center border-2 border-ink bg-hot-pink text-ink shadow-[4px_4px_0_0_#000]">
             <TriangleAlert className="size-5" strokeWidth={2.6} />
@@ -47,11 +49,11 @@ export function ConfirmDialog({
         </div>
         <div className="mt-6 flex flex-col-reverse gap-3 border-t-2 border-ink pt-4 sm:flex-row sm:justify-end">
           <AlertDialogCancel asChild>
-            <Button variant="secondary">取消</Button>
+            <Button variant="secondary" disabled={busy}>取消</Button>
           </AlertDialogCancel>
           <AlertDialogAction asChild>
-            <Button variant={danger ? 'danger' : 'default'} onClick={onConfirm}>
-              {confirmLabel}
+            <Button variant={danger ? 'danger' : 'default'} disabled={busy} onClick={event => { event.preventDefault(); onConfirm() }}>
+              {busy ? '正在保存…' : confirmLabel}
             </Button>
           </AlertDialogAction>
         </div>

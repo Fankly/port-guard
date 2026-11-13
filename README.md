@@ -13,18 +13,23 @@
 - 从已存在的 pflog 接口读取元数据；支持离线 classic pcap 解码。
 - 提供双端口 TCP 和单向 UDP 测试工具。
 - 提供 Tauri 2 桌面壳：React 界面通过受限 IPC 读写本机 SQLite，并由 Rust 侧复用规则校验；浏览器预览仍可独立运行。
+- 在“端口规则 → 电脑原有规则”中，根据后端运行系统自动读取原有防火墙规则，按允许、阻止、地址转换/端口转发、规则入口和其他配置分类，支持搜索、来源筛选和分页。
+
+系统规则读取为只读快照，不会导入应用白名单或修改防火墙。macOS 读取 `/etc/pf.conf` 及其 `load anchor` 引用文件、内核 PF 过滤/转发规则（递归 anchors）、应用防火墙状态与应用规则；配置文件与内核规则分别标记。Windows 使用 PowerShell `Get-NetFirewallRule -PolicyStore ActiveStore`，保留协议、地址、端口、应用、规则启用状态及配置文件信息。权限不足、超时和不支持的系统会显示明确的读取状态。Windows 读取器已做数据解析测试，仍需 Windows 实机验证。
 
 尚未完成系统规则挂载安装器、后台常驻服务、Windows 执行层和实机流量验收。原型有意不提供自动启用 PF、全量加载主规则集或全量清理状态的命令。不能仅凭语法检查或 ioctl 返回成功就宣布访问权限已撤销。
 
 ## 界面设计预览
 
-`ui/` 是 React + TypeScript 的界面（Tailwind CSS 4 + Radix UI/shadcn 风格组件 + Motion + Zustand + TanStack Query + Recharts），包含总览、端口规则、访问日志、操作日志、设置五个页面和规则编辑抽屉。在浏览器中独立运行时只读写 `localStorage` 中的演示数据；在 Tauri 桌面端则通过 IPC 读写本机 SQLite。
+`ui/` 是 React + TypeScript 的界面（Tailwind CSS 4 + Radix UI/shadcn 风格组件 + Motion + Zustand + TanStack Query + Recharts），包含总览、端口规则、访问日志、操作日志、设置五个页面和规则编辑抽屉。浏览器通过本机回环 HTTP 后端读取系统规则及 SQLite，Tauri 桌面端通过 IPC 访问相同 Rust 逻辑；空数据库不写入演示规则。
 
 ```sh
 cd ui
 npm install
-npm run dev    # http://127.0.0.1:1420
+npm run dev    # 同时启动界面 :1420 与本机 API :1421
 ```
+
+也可先运行 `npm --prefix ui run build`，再运行 `python3 tools/web.py`，打开 `http://127.0.0.1:1422/#/rules`。两种浏览器运行方式均读取运行后端的电脑，而非浏览器所在设备。
 
 需要 Node.js 20.19+（仓库提供 `ui/.nvmrc`，当前为 Node 24）。设计说明、页面截图和待确认项见 [`docs/界面设计.md`](docs/界面设计.md)。
 

@@ -11,7 +11,6 @@ import type { PageId } from '../../hooks/use-route'
 import type { PlatformId } from '../../lib/platform'
 import { platformCopy } from '../../lib/platform'
 import { cn } from '../../lib/utils'
-import { LiveDot } from '../shared/status'
 
 type NavItem = {
   id: PageId
@@ -44,6 +43,8 @@ export function Sidebar({
   desktop,
   storageError,
   platform,
+  systemReadStatus,
+  systemRuleCount,
   onNavigate,
 }: {
   page: PageId
@@ -52,6 +53,8 @@ export function Sidebar({
   desktop: boolean
   storageError: boolean
   platform: PlatformId
+  systemReadStatus: string
+  systemRuleCount: number
   onNavigate: (page: PageId) => void
 }) {
   const platformLabels = platformCopy(platform)
@@ -141,29 +144,26 @@ export function Sidebar({
       <div className="border-t-2 border-paper px-3 pb-4 pt-4">
         <div className="border-2 border-paper bg-ink p-3">
           <div className="flex items-center gap-2">
-            {activeCount > 0 ? (
-              <LiveDot />
-            ) : (
-              <span className="size-2 border-2 border-paper bg-hot-pink" aria-hidden="true" />
-            )}
             <span className="font-mono text-[12px] font-bold uppercase tracking-[0.06em] text-paper">
-              {activeCount > 0 ? '防护运行中' : '防护已暂停'}
+              系统规则读取
             </span>
             <span className="ml-auto border border-paper px-1 py-px font-mono text-[12px] font-bold uppercase tracking-[0.12em] text-paper">
-              示例
+              {systemReadStatus}
             </span>
           </div>
+          <div className="mt-2 flex items-center justify-between gap-2 font-mono text-[12px] text-paper">
+            <span>白名单执行</span>
+            <span className="border border-paper px-1 py-px">待接入</span>
+          </div>
           <p className="mt-2 font-mono text-[12px] leading-[1.6] text-paper">
-            {activeCount > 0
-              ? `${activeCount} 个端口按白名单管理，日志采集正常。`
-              : '暂无启用中的规则，端口保持系统原有策略。'}
+            已读取 {systemRuleCount} 条原有规则。{activeCount > 0 ? `${activeCount} 条白名单配置待应用。` : '应用白名单尚未写入系统防火墙。'}
           </p>
           <button
             type="button"
-            onClick={() => onNavigate('overview')}
+            onClick={() => onNavigate('rules')}
             className="mt-2.5 inline-flex items-center gap-1 border-b-2 border-acid-lime font-mono text-[12px] font-bold uppercase tracking-[0.06em] text-acid-lime transition-colors hover:bg-acid-lime hover:text-ink"
           >
-            查看运行状态
+            查看规则与来源
             <ArrowUpRight className="size-3" strokeWidth={3} />
           </button>
         </div>

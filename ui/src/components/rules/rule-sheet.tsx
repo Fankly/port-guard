@@ -305,7 +305,7 @@ export function RuleSheet({ mode, rule, rules, onClose, onSave }: Props) {
                 <AlertTriangle className="mt-0.5 size-4 shrink-0" strokeWidth={2.6} />
                 <span className="font-mono text-[11px] leading-[1.6]">
                   保存后，{removedSources.length} 个来源将失去对端口 {rule.port}{' '}
-                  的访问权限；已建立的连接也会在规则生效时被撤销。
+                  的白名单配置；系统执行与已有连接撤销功能尚未接入。
                 </span>
               </div>
             )}
@@ -463,7 +463,7 @@ export function RuleSheet({ mode, rule, rules, onClose, onSave }: Props) {
                   启用这条规则
                 </strong>
                 <p className="mt-1 font-mono text-[12px] leading-[1.5]">
-                  停用后恢复系统对该端口的原有策略，规则配置会保留。
+                  停用后保留应用配置，当前不会修改系统防火墙规则。
                 </p>
               </div>
               <Switch
